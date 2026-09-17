@@ -1,6 +1,11 @@
 import type { MetadataRoute } from "next";
 import { findMaids } from "@/lib/api";
 
+// findMaids now goes through axios, which Next's static-render detection
+// doesn't see — without this, the sitemap would render once at build time
+// and never regenerate, silently going stale as maids are added/removed.
+export const dynamic = "force-dynamic";
+
 const BASE = "https://www.pickmymaid.com";
 
 const STATIC_PAGES: MetadataRoute.Sitemap = [

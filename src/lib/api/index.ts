@@ -1,3 +1,4 @@
+import axios, { isAxiosError, type AxiosRequestConfig } from 'axios'
 import type { FeaturedJob, ApiMaid, ApiBlog, ApiBlogDetail } from '@/types'
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'https://api.backendpickmymaid.site/api'
@@ -22,62 +23,60 @@ export class NetworkError extends Error {
 
 const REQUEST_TIMEOUT_MS = 20000
 
-async function fetchOnce<T>(path: string, options?: RequestInit): Promise<T> {
-  const { headers: extra, ...rest } = options ?? {}
-  const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+// Every request goes straight to the live API — no Next.js fetch cache, no
+// ISR. withCredentials keeps the session cookie flowing on both the client
+// and (Next's Node runtime) the server.
+const client = axios.create({
+  baseURL: BASE_URL,
+  withCredentials: true,
+  timeout: REQUEST_TIMEOUT_MS,
+  headers: { 'Content-Type': 'application/json' },
+})
 
-  let res: Response
+async function requestOnce<T>(path: string, config?: AxiosRequestConfig): Promise<T> {
   try {
-    res = await fetch(`${BASE_URL}${path}`, {
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json', ...(extra as Record<string, string>) },
-      signal: controller.signal,
-      ...rest,
-    })
+    const res = await client.request<T>({ url: path, ...config })
+    return res.data
   } catch (err) {
-    if (err instanceof DOMException && err.name === 'AbortError') {
-      throw new NetworkError('Request timed out. Please check your connection and try again.')
+    if (isAxiosError(err)) {
+      if (err.response) {
+        const body = err.response.data as { message?: string } | undefined
+        const message = body?.message ?? `API error: ${err.response.status}`
+        throw new ApiError(message, err.response.status)
+      }
+      if (err.code === 'ECONNABORTED') {
+        throw new NetworkError('Request timed out. Please check your connection and try again.')
+      }
+      throw new NetworkError()
     }
-    throw new NetworkError()
-  } finally {
-    clearTimeout(timeout)
+    throw err
   }
-
-  if (!res.ok) {
-    let message = `API error: ${res.status}`
-    try {
-      const body = await res.json()
-      if (body?.message) message = body.message
-    } catch { /* ignore parse errors */ }
-    throw new ApiError(message, res.status)
-  }
-  return res.json()
 }
 
 // Mobile data networks in the UAE frequently drop or stall individual
 // requests. A network-level failure (not an HTTP error response) is
 // retried once after a short delay before giving up.
-async function request<T>(path: string, options?: RequestInit): Promise<T> {
+async function request<T>(path: string, config?: AxiosRequestConfig): Promise<T> {
   try {
-    return await fetchOnce<T>(path, options)
+    return await requestOnce<T>(path, config)
   } catch (err) {
     if (err instanceof NetworkError) {
       await new Promise((r) => setTimeout(r, 1200))
-      return await fetchOnce<T>(path, options)
+      return await requestOnce<T>(path, config)
     }
     throw err
   }
 }
 
 export const api = {
-  get: <T>(path: string, options?: RequestInit) => request<T>(path, options),
-  post: <T>(path: string, body: unknown) =>
-    request<T>(path, { method: 'POST', body: JSON.stringify(body) }),
+  get: <T>(path: string, config?: AxiosRequestConfig) =>
+    request<T>(path, { method: 'GET', ...config }),
+  post: <T>(path: string, body: unknown, config?: AxiosRequestConfig) =>
+    request<T>(path, { method: 'POST', data: body, ...config }),
 }
 
 export async function getFeaturedJobs(): Promise<{ data: FeaturedJob[] }> {
-  return api.get<{ data: FeaturedJob[] }>('/v1/job/featured', { next: { revalidate: 1800, tags: ['maids'] } } as RequestInit)
+  return api.get<{ data: FeaturedJob[] }>('/v1/job/featured')
 }
 
 export interface SearchJobsParams {
@@ -165,11 +164,36 @@ export interface RegisterResponse {
   status: string
   statusCode: number
   message: string
-  data: { token: string; user_id: string }
 }
 
+// Registration no longer creates the account directly — it emails a 6-digit
+// OTP to confirm the address. The account is only created once that OTP is
+// confirmed via verifyRegistrationOtp.
 export async function registerCustomer(body: RegisterBody): Promise<RegisterResponse> {
   return api.post<RegisterResponse>('/v1/auth/customer/register', body)
+}
+
+export interface VerifyRegistrationOtpBody {
+  email: string
+  otp: string
+}
+
+export interface VerifyRegistrationOtpResponse {
+  status: string
+  statusCode: number
+  message: string
+  data: {
+    _id: string
+    first_name: string
+    email: string
+    type: string
+    profile: string
+    accountId: string
+  }
+}
+
+export async function verifyRegistrationOtp(body: VerifyRegistrationOtpBody): Promise<VerifyRegistrationOtpResponse> {
+  return api.post<VerifyRegistrationOtpResponse>('/v1/auth/customer/verify-otp', body)
 }
 
 export interface VerifyAuthUser {
@@ -224,7 +248,7 @@ export async function resetPassword(token: string, body: ResetPasswordBody): Pro
   await request<unknown>('/v1/auth/customer/reset-password', {
     method: 'POST',
     headers: { Authorization: token },
-    body: JSON.stringify(body),
+    data: body,
   })
 }
 
@@ -280,7 +304,7 @@ export interface GetBlogsResponse {
 }
 
 export async function getBlogs(page: number = 1): Promise<GetBlogsResponse> {
-  return api.get<GetBlogsResponse>(`/v1/blog/page/${page}`, { next: { revalidate: 3600 } } as RequestInit)
+  return api.get<GetBlogsResponse>(`/v1/blog/page/${page}`)
 }
 
 export interface GetBlogDetailResponse {
@@ -291,7 +315,7 @@ export interface GetBlogDetailResponse {
 }
 
 export async function getBlogBySlug(slug: string): Promise<GetBlogDetailResponse> {
-  return api.get<GetBlogDetailResponse>(`/v1/blog/id/${slug}`, { next: { revalidate: 86400 } } as RequestInit)
+  return api.get<GetBlogDetailResponse>(`/v1/blog/id/${slug}`)
 }
 
 export interface PaymentDetailsResponse {
@@ -340,9 +364,5 @@ export async function findMaids(params: FindMaidsParams = {}): Promise<FindMaids
     if (val !== undefined && val !== '') query.set(key, String(val))
   }
   const qs = query.toString()
-  // Every distinct filter combo is its own cache entry, so a short TTL here
-  // multiplies writes across the whole combinatorial space of query params.
-  // The 'maids' tag lets an admin edit purge every combo on demand instead
-  // of waiting out the TTL (see /api/revalidate).
-  return api.get<FindMaidsResponse>(`/v2/maids/find/${page}${qs ? `?${qs}` : ''}`, { next: { revalidate: 3600, tags: ['maids'] } } as RequestInit)
+  return api.get<FindMaidsResponse>(`/v2/maids/find/${page}${qs ? `?${qs}` : ''}`)
 }

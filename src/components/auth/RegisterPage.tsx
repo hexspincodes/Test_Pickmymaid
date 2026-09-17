@@ -8,8 +8,9 @@ import { useForm } from "react-hook-form";
 import { Eye, EyeOff, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/auth";
-import { registerCustomer, ApiError, NetworkError } from "@/lib/api";
+import { registerCustomer, verifyRegistrationOtp, ApiError, NetworkError } from "@/lib/api";
 import { SplitButton } from "@/components/ui/SplitButton";
+import { OtpInput } from "@/components/ui/OtpInput";
 
 /* ─── Constants ─────────────────────────────────────────────── */
 
@@ -262,6 +263,26 @@ export function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
+  // Registration is two steps: submit details -> email OTP, then confirm the
+  // OTP to actually create the account. `pendingRegistration` holds what was
+  // submitted so "Resend OTP" and the final setAuth() call can reuse it.
+  const [step, setStep] = useState<"form" | "otp">("form");
+  const [pendingRegistration, setPendingRegistration] = useState<{
+    body: {
+      first_name: string;
+      last_name: string;
+      email: string;
+      password: string;
+      emirate_of_residence: string;
+      position_required: string;
+      phone: string;
+    };
+    fullName: string;
+  } | null>(null);
+  const [otp, setOtp] = useState("");
+  const [otpSubmitting, setOtpSubmitting] = useState(false);
+  const [resending, setResending] = useState(false);
+
   const {
     register,
     handleSubmit,
@@ -276,21 +297,48 @@ export function RegisterPage() {
     const nameParts = data.name.trim().split(/\s+/);
     const first_name = nameParts[0];
     const last_name = nameParts.slice(1).join(" ") || nameParts[0];
+    const body = {
+      first_name,
+      last_name,
+      email: data.email,
+      password: data.password,
+      emirate_of_residence: data.emirate_of_residence,
+      position_required: data.position_required,
+      phone: `${data.country_code}${data.mobile}`,
+    };
 
     try {
-      const res = await registerCustomer({
-        first_name,
-        last_name,
-        email: data.email,
-        password: data.password,
-        emirate_of_residence: data.emirate_of_residence,
-        position_required: data.position_required,
-        phone: `${data.country_code}${data.mobile}`,
+      await registerCustomer(body);
+      setPendingRegistration({ body, fullName: data.name.trim() });
+      setOtp("");
+      setStep("otp");
+      toast.success(`OTP sent to ${data.email}`);
+    } catch (err) {
+      if (err instanceof NetworkError) {
+        setServerError(
+          "We couldn't reach our servers — this can happen on mobile data. Please check your signal or switch to Wi-Fi, then try again."
+        );
+      } else if (err instanceof ApiError) {
+        setServerError(err.message);
+      } else {
+        setServerError("Registration failed. Please try again.");
+      }
+    }
+  }
+
+  async function onVerifyOtp() {
+    if (!pendingRegistration) return;
+    setServerError(null);
+    setOtpSubmitting(true);
+    try {
+      const res = await verifyRegistrationOtp({
+        email: pendingRegistration.body.email,
+        otp,
       });
       setAuth({
-        id: res.data.user_id,
-        email: data.email,
-        name: data.name.trim(),
+        id: res.data._id,
+        email: res.data.email,
+        name: pendingRegistration.fullName,
         isSubscribed: false,
       });
       toast.success("Account created! Welcome to Pickmymaid.");
@@ -304,8 +352,32 @@ export function RegisterPage() {
       } else if (err instanceof ApiError) {
         setServerError(err.message);
       } else {
-        setServerError("Registration failed. Please try again.");
+        setServerError("Verification failed. Please try again.");
       }
+    } finally {
+      setOtpSubmitting(false);
+    }
+  }
+
+  async function onResendOtp() {
+    if (!pendingRegistration) return;
+    setServerError(null);
+    setResending(true);
+    try {
+      await registerCustomer(pendingRegistration.body);
+      toast.success(`OTP sent to ${pendingRegistration.body.email}`);
+    } catch (err) {
+      if (err instanceof NetworkError) {
+        setServerError(
+          "We couldn't reach our servers — this can happen on mobile data. Please check your signal or switch to Wi-Fi, then try again."
+        );
+      } else if (err instanceof ApiError) {
+        setServerError(err.message);
+      } else {
+        setServerError("Couldn't resend OTP. Please try again.");
+      }
+    } finally {
+      setResending(false);
     }
   }
 
@@ -344,10 +416,12 @@ export function RegisterPage() {
           {/* Header */}
           <div className="mb-7">
             <h1 className="text-2xl font-bold text-dark tracking-[-0.5px]">
-              Free Registration
+              {step === "otp" ? "Verify Your Email" : "Free Registration"}
             </h1>
             <p className="text-sm text-muted mt-1">
-              Fill in your details below and get instant access to verified candidates.
+              {step === "otp"
+                ? `Enter the 6-digit code we sent to ${pendingRegistration?.body.email}.`
+                : "Fill in your details below and get instant access to verified candidates."}
             </p>
           </div>
 
@@ -358,6 +432,46 @@ export function RegisterPage() {
             </div>
           )}
 
+          {step === "otp" ? (
+            <div className="flex flex-col gap-4 flex-1">
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-medium text-dark">
+                  6-Digit OTP
+                </label>
+                <OtpInput value={otp} onChange={setOtp} disabled={otpSubmitting} />
+              </div>
+
+              <button
+                type="button"
+                disabled={otpSubmitting || otp.length !== 6}
+                onClick={onVerifyOtp}
+                className="mt-1 w-full py-3.5 rounded-2xl bg-primary text-white font-semibold text-sm tracking-wide hover:bg-primary-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+              >
+                {otpSubmitting ? "Verifying…" : "Verify & Create Account"}
+              </button>
+
+              <div className="flex items-center justify-between text-sm">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStep("form");
+                    setServerError(null);
+                  }}
+                  className="text-muted hover:text-dark transition-colors"
+                >
+                  ← Back to edit details
+                </button>
+                <button
+                  type="button"
+                  disabled={resending}
+                  onClick={onResendOtp}
+                  className="text-primary font-semibold hover:text-primary-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {resending ? "Sending…" : "Resend OTP"}
+                </button>
+              </div>
+            </div>
+          ) : (
           <form
             onSubmit={handleSubmit(onSubmit)}
             className="flex flex-col gap-4 flex-1"
@@ -630,10 +744,11 @@ export function RegisterPage() {
                 disabled={isSubmitting}
                 className="mt-1 w-full py-3.5 rounded-2xl bg-primary text-white font-semibold text-sm tracking-wide hover:bg-primary-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
               >
-                {isSubmitting ? "Creating account…" : "Register"}
+                {isSubmitting ? "Sending OTP…" : "Register"}
               </button>
             </div>
           </form>
+          )}
 
           {/* Footer */}
           <p className="text-sm text-muted text-center mt-6">

@@ -1,24 +1,15 @@
 import { notFound, permanentRedirect } from "next/navigation";
 import type { Metadata } from "next";
-import { getMaid, findMaids } from "@/lib/api";
+import { getMaid } from "@/lib/api";
 import type { ApiMaid } from "@/types";
 import { MaidProfilePage } from "@/components/maid/MaidProfilePage";
 import { seoConfig } from "@/config/seo.config";
 
-// On-demand revalidation (see /api/revalidate) already refreshes a page
-// the moment its data changes. This is just a safety-net TTL in case that
-// webhook is ever missed — it doesn't need to be short.
-export const revalidate = 21600; // 6 hours
-export const dynamicParams = true;
+// No ISR — every request fetches the maid straight from the API, so an
+// admin edit shows up on the next page load with no cache to invalidate.
+export const dynamic = "force-dynamic";
 
 const ASSET_BASE = "https://assets.pickmymaid.com";
-
-function slugify(str: string) {
-  return str
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
 
 function getPhotoUrl(profile: string | null): string | undefined {
   if (!profile) return undefined;
@@ -35,32 +26,6 @@ function getTotalExp(maid: ApiMaid): number {
     (acc, e) => acc + (e.experiance ?? 0),
     0,
   );
-}
-
-/* Pre-generate ALL maid pages at build time by walking every API page */
-export async function generateStaticParams() {
-  const params: { id: string; slug: string }[] = [];
-  let page = 1;
-
-  while (true) {
-    const res = await findMaids({ page }).catch(() => null);
-    const maids = res?.data?.maids ?? [];
-    if (maids.length === 0) break;
-
-    for (const m of maids) {
-      if (!m.ref_number) continue;
-      params.push({
-        id: String(m.ref_number),
-        slug: slugify(
-          `${m.name ?? ""} ${m.option ?? ""} ${m.nationality ?? ""}`,
-        ),
-      });
-    }
-    if (params.length >= (res?.data?.count ?? 0)) break;
-    page++;
-  }
-
-  return params;
 }
 
 export async function generateMetadata({

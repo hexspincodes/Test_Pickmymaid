@@ -8,15 +8,18 @@
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
-  // Used by OpenNext for ISR/`fetch` cache (ISR revalidation, getBlogs/findMaids/getMaid `next.revalidate`).
+  // OpenNext's incremental cache store. Currently unused — every route is
+  // `force-dynamic` and data fetching goes through axios (bypasses Next's
+  // fetch cache), so there's nothing left to write here. Left in place in
+  // case ISR/caching is reintroduced later; harmless if idle.
   "kv_namespaces": [
     {
       "binding": "NEXT_INC_CACHE_KV",
       "id": "f5aca835d33a456c94bd647157d86c02"
     }
   ],
-  // Required so ISR-tagged revalidation (revalidatePath in /api/revalidate) can
-  // re-invoke this same Worker to regenerate pages on demand.
+  // Was required for the old /api/revalidate on-demand-revalidation route
+  // (removed). Currently unused for the same reason as the KV binding above.
   "services": [
     {
       "binding": "WORKER_SELF_REFERENCE",

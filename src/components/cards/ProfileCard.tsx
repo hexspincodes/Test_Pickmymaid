@@ -83,7 +83,11 @@ const flagMap = (country: string) => {
     : `${base}${country.toLowerCase()}.webp`;
 };
 
-function toYouTubeEmbed(url: string): string {
+function toYouTubeEmbed(rawUrl: string): string {
+  // API sometimes stores links copied from YouTube's "Embed" snippet, which
+  // HTML-escapes the query string (e.g. `&amp;rel=0`). Left as-is, that
+  // breaks query parsing and the player fails to load.
+  const url = rawUrl.replace(/&amp;/g, "&");
   const params = "autoplay=1&rel=0&modestbranding=1";
 
   const short = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);

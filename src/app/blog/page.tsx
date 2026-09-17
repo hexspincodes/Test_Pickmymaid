@@ -4,7 +4,8 @@ import { BlogListingSection } from "@/components/blog/BlogListingSection";
 import { getBlogs } from "@/lib/api";
 import { seoConfig } from "@/config/seo.config";
 
-export const revalidate = 3600;
+// No ISR — every request fetches the listing straight from the API.
+export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 9;
 

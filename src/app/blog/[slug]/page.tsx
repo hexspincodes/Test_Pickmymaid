@@ -4,34 +4,18 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { CalendarDays, ArrowRight, ChevronRight } from 'lucide-react'
-import { getBlogBySlug, getFeaturedJobs, getBlogs } from '@/lib/api'
+import { getBlogBySlug, getFeaturedJobs } from '@/lib/api'
 import { seoConfig } from '@/config/seo.config'
 import { ShareButton } from '@/components/blog/ShareButton'
 import { MaidSidebarCard } from '@/components/blog/MaidSidebarCard'
 import { SplitButton } from '@/components/ui/SplitButton'
 
-export const revalidate = 86400
-export const dynamicParams = true
+// No ISR — every request fetches the post straight from the API.
+export const dynamic = 'force-dynamic'
 
 const ASSET_BASE = 'https://assets.pickmymaid.com'
 
 type Props = { params: Promise<{ slug: string }> }
-
-export async function generateStaticParams() {
-  const slugs: { slug: string }[] = []
-  let page = 1
-  while (true) {
-    const res = await getBlogs(page).catch(() => null)
-    const blogs = res?.data?.blogs ?? []
-    if (blogs.length === 0) break
-    for (const b of blogs) {
-      if (b.slug) slugs.push({ slug: b.slug })
-    }
-    if (blogs.length < 9) break
-    page++
-  }
-  return slugs
-}
 
 function thumbnailSrc(thumbnail: string): string {
   if (!thumbnail) return '/og-default.jpg'
