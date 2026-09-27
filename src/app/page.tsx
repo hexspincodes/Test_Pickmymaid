@@ -4,7 +4,7 @@ import { HeroSection } from "@/components/home/HeroSection";
 import { BannerSection } from "@/components/home/BannerSection";
 import { BelowFoldClient } from "@/components/home/BelowFoldClient";
 import { HomeJsonLd } from "@/components/home/HomeJsonLd";
-import { getFeaturedJobs } from "@/lib/api";
+import { getFeaturedVideoProfiles } from "@/lib/getFeaturedVideoProfiles";
 import { seoConfig } from "@/config/seo.config";
 
 const BlogSection = nextDynamic(() =>
@@ -34,16 +34,14 @@ export const metadata: Metadata = {
 };
 
 export default async function HomePage() {
-  const featuredJobs = await getFeaturedJobs()
-    .then((r) => r?.data ?? [])
-    .catch(() => []);
+  const videoProfiles = await getFeaturedVideoProfiles(20).catch(() => []);
 
   return (
     <>
       <HomeJsonLd />
       <HeroSection />
       <BannerSection />
-      <BelowFoldClient featuredJobs={featuredJobs} />
+      <BelowFoldClient videoProfiles={videoProfiles} />
       <BlogSection />
     </>
   );

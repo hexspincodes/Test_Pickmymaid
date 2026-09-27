@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { FeaturedJob } from "@/types";
+import type { Profile } from "@/components/cards/ProfileCard";
 
 const AvailableMaidsSection = dynamic(() =>
   import("./AvailableMaidsSection").then((m) => m.AvailableMaidsSection),
@@ -35,10 +35,10 @@ const SubscriptionPlansSection = dynamic(() =>
   import("./SubscriptionPlansSection").then((m) => m.SubscriptionPlansSection),
 );
 
-export function BelowFoldClient({ featuredJobs }: { featuredJobs: FeaturedJob[] }) {
+export function BelowFoldClient({ videoProfiles }: { videoProfiles: Profile[] }) {
   return (
     <>
-      <AvailableMaidsSection featuredJobs={featuredJobs} />
+      <AvailableMaidsSection profiles={videoProfiles} />
       <ExploreMaidsSection />
       <SubscriptionPlansSection />
       <WhyChooseUsSection />
