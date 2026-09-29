@@ -8,7 +8,7 @@ import { useForm } from "react-hook-form";
 import { Eye, EyeOff, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/auth";
-import { registerCustomer, verifyRegistrationOtp, ApiError, NetworkError } from "@/lib/api";
+import { registerCustomer, verifyRegistrationOtp, loginCustomer, ApiError, NetworkError } from "@/lib/api";
 import { SplitButton } from "@/components/ui/SplitButton";
 import { OtpInput } from "@/components/ui/OtpInput";
 
@@ -335,6 +335,16 @@ export function RegisterPage() {
         email: pendingRegistration.body.email,
         otp,
       });
+      // OTP verification doesn't open a server session, so authenticated
+      // calls like create-payment would 401. Log in to get the session cookie.
+      try {
+        await loginCustomer({
+          email: pendingRegistration.body.email,
+          password: pendingRegistration.body.password,
+        });
+      } catch {
+        // Account is created; payment flow will prompt a re-login if needed.
+      }
       setAuth({
         id: res.data._id,
         email: res.data.email,

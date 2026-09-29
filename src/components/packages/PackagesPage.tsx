@@ -7,7 +7,7 @@ import { Check, CheckCircle2, ArrowRight, Plus, Minus } from "lucide-react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { toast } from "sonner";
 import { useAuthStore, useSubscription } from "@/store/auth";
-import { createPayment } from "@/lib/api";
+import { createPayment, ApiError, NetworkError } from "@/lib/api";
 import { PLANS } from "@/config/plans.config";
 import { PlanCard } from "../cards/PlanCard";
 
@@ -236,6 +236,7 @@ export function PackagesPage() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const logout = useAuthStore((s) => s.logout);
   const { isSubscribed, tier } = useSubscription();
   const [loadingType, setLoadingType] = useState<0 | 1 | 2 | 3 | null>(null);
   const [faqOpen, setFaqOpen] = useState(0);
@@ -261,9 +262,20 @@ export function PackagesPage() {
     try {
       const res = await createPayment(type);
       window.location.assign(res.data.payment_url);
-    } catch {
-      toast.error("Could not initiate payment. Please try again.");
+    } catch (err) {
       setLoadingType(null);
+      if (err instanceof ApiError && err.status === 401) {
+        logout();
+        toast("Your session has expired. Please log in to continue.");
+        router.push(`/login?returnTo=${encodeURIComponent(`${pathname}#plans`)}`);
+        return;
+      }
+      console.error("createPayment failed", err);
+      toast.error(
+        err instanceof ApiError || err instanceof NetworkError
+          ? err.message
+          : "Could not initiate payment. Please try again."
+      );
     }
   }
 
