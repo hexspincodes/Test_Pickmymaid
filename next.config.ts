@@ -64,6 +64,13 @@ const nextConfig: NextConfig = {
         destination: "/pricing",
         permanent: true,
       },
+      {
+        // The backend's PAYMENT_REDIRECT_URL sends the gateway back to
+        // /payment/redirect?ref=...; verification lives at /payment-verification.
+        source: "/payment/redirect",
+        destination: "/payment-verification",
+        permanent: false,
+      },
     ];
   },
   experimental: {

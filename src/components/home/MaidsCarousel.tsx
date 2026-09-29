@@ -47,7 +47,7 @@ export function MaidsCarousel({ profiles }: { profiles: Profile[] }) {
               key={p.id}
               className="flex-[0_0_100%] min-[700px]:flex-[0_0_50%] lg:flex-[0_0_50%] xl:flex-[0_0_33.3333%] 2xl:flex-[0_0_25%] pr-4 xl:pr-5"
             >
-              <ProfileCard profile={p} />
+              <ProfileCard profile={p} showPostedOn={false} />
             </div>
           ))}
         </div>

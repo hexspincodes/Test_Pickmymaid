@@ -51,6 +51,7 @@ interface ProfileCardProps {
   profile: Profile;
   /** Set for above-the-fold cards (e.g. first grid row) to speed up LCP */
   priority?: boolean;
+  showPostedOn?: boolean;
 }
 
 /* ─── Helpers ────────────────────────────────────────────────────────────── */
@@ -133,7 +134,11 @@ function InfoRow({
 
 /* ─── ProfileCard ────────────────────────────────────────────────────────── */
 
-export function ProfileCard({ profile, priority = false }: ProfileCardProps) {
+export function ProfileCard({
+  profile,
+  priority = false,
+  showPostedOn = true,
+}: ProfileCardProps) {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -271,7 +276,7 @@ export function ProfileCard({ profile, priority = false }: ProfileCardProps) {
 
             {/* Bottom row: posted date + flag tag */}
             <div className="flex items-end justify-between">
-              {profile.postedOn ? (
+              {showPostedOn && profile.postedOn ? (
                 <p className="text-[11px] font-medium text-white/80 tracking-[0.5px]">
                   Posted On : {formatPostedOn(profile.postedOn)}
                 </p>
