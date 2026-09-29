@@ -107,8 +107,8 @@ export function LoginPage() {
       const u = verify.data.user;
 
       let isSubscribed = false;
-      let subscriptionTier: "basic" | "standard" | "premium" | undefined;
-      const TIER_MAP = ["basic", "standard", "premium"] as const;
+      let subscriptionTier: "basic" | "standard" | "premium" | "starter" | undefined;
+      const TIER_MAP = ["basic", "standard", "premium", "starter"] as const;
       try {
         const payment = await getPaymentDetails();
         if (payment.data?.user?.status === 1) {

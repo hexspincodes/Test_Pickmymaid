@@ -289,7 +289,7 @@ export interface CreatePaymentResponse {
   data: { ref: string; payment_url: string }
 }
 
-export async function createPayment(type: 0 | 1 | 2): Promise<CreatePaymentResponse> {
+export async function createPayment(type: 0 | 1 | 2 | 3): Promise<CreatePaymentResponse> {
   return api.post<CreatePaymentResponse>('/v2/payment/create-payment', { type })
 }
 
@@ -325,7 +325,7 @@ export interface PaymentDetailsResponse {
   data: {
     user: {
       status: number       // 1 = active subscription
-      type: 0 | 1 | 2     // 0 = basic, 1 = standard, 2 = premium
+      type: 0 | 1 | 2 | 3  // 0 = basic, 1 = standard, 2 = premium, 3 = starter
     }
   }
 }
@@ -340,7 +340,7 @@ export interface AcknowledgePaymentResponse {
   message: string
   data: {
     status: 0 | 1 | 2
-    type: 0 | 1 | 2
+    type: 0 | 1 | 2 | 3
     expiryDate: string
     ref: string
     paymentDate: string

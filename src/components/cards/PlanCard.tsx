@@ -12,8 +12,8 @@ export function PlanCard({
 }: {
   plan: Plan;
   isActivePlan: boolean;
-  loadingType: 0 | 1 | 2 | null;
-  onGetStarted: (type: 0 | 1 | 2) => void;
+  loadingType: 0 | 1 | 2 | 3 | null;
+  onGetStarted: (type: 0 | 1 | 2 | 3) => void;
   ctaLabel?: string;
 }) {
   return (

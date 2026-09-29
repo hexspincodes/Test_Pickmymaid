@@ -9,7 +9,7 @@ import { useAuthStore } from "@/store/auth";
 import { SplitButton } from "@/components/ui/SplitButton";
 import { PLANS } from "@/config/plans.config";
 
-const TIER_MAP = ["basic", "standard", "premium"] as const;
+const TIER_MAP = ["basic", "standard", "premium", "starter"] as const;
 
 const PLAN_INFO: Record<string, { name: string; duration: string; price: string }> =
   Object.fromEntries(
@@ -34,7 +34,7 @@ export function PaymentSuccessPage() {
   const expiryParam = searchParams.get("expiry") ?? "";
   const paidParam = searchParams.get("paid") ?? "";
 
-  const tierKey = typeIndex >= 0 && typeIndex <= 2 ? TIER_MAP[typeIndex] : null;
+  const tierKey = typeIndex >= 0 && typeIndex <= 3 ? TIER_MAP[typeIndex] : null;
   const planInfo = tierKey ? PLAN_INFO[tierKey] : null;
 
   useEffect(() => {

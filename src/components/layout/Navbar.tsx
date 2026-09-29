@@ -120,13 +120,13 @@ export function Navbar() {
 
   /* ── Auth verification on mount — cookie is sent automatically ── */
   useEffect(() => {
-    const TIER_MAP = ["basic", "standard", "premium"] as const;
+    const TIER_MAP = ["basic", "standard", "premium", "starter"] as const;
 
     verifyAuth()
       .then(async (res) => {
         const u = res.data.user;
         let isSubscribed = false;
-        let subscriptionTier: "basic" | "standard" | "premium" | undefined;
+        let subscriptionTier: "basic" | "standard" | "premium" | "starter" | undefined;
 
         try {
           const payment = await getPaymentDetails();

@@ -4,17 +4,33 @@ export interface PlanBenefit {
 }
 
 export interface Plan {
-  id: "basic" | "standard" | "premium";
+  id: "starter" | "basic" | "standard" | "premium";
   name: string;
   price: number;
   duration: string;
   description: string;
   isBestChoice: boolean;
-  type: 0 | 1 | 2;
+  type: 0 | 1 | 2 | 3;
   benefits: PlanBenefit[];
 }
 
 export const PLANS: Plan[] = [
+  {
+    id: "starter",
+    name: "Starter Set",
+    price: 0.38,
+    duration: "14 Days",
+    description: "One-time Payment",
+    isBestChoice: false,
+    type: 3,
+    benefits: [
+      { text: "Direct phone & WhatsApp access to all candidates", included: true },
+      { text: "Fresh verified maid & nanny profiles added daily", included: true },
+      { text: "Hire anyone within your 14-day access window", included: true },
+      { text: "Unlimited maid trials & replacements until you find the right one", included: false },
+      { text: "Dedicated support from a consultant ", included: false },
+    ],
+  },
   {
     id: "basic",
     name: "Basic Plan",

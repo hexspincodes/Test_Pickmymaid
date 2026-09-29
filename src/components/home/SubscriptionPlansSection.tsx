@@ -14,9 +14,9 @@ export function SubscriptionPlansSection() {
   const router = useRouter();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const { isSubscribed, tier } = useSubscription();
-  const [loadingType, setLoadingType] = useState<0 | 1 | 2 | null>(null);
+  const [loadingType, setLoadingType] = useState<0 | 1 | 2 | 3 | null>(null);
 
-  async function handleGetStarted(type: 0 | 1 | 2) {
+  async function handleGetStarted(type: 0 | 1 | 2 | 3) {
     if (!isAuthenticated) {
       toast("Please register or log in to get started.");
       router.push("/register");
@@ -67,7 +67,7 @@ export function SubscriptionPlansSection() {
         </div>
 
         {/* Plan cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 lg:items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8 lg:items-center">
           {PLANS.map((plan) => (
             <PlanCard
               key={plan.id}

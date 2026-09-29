@@ -237,7 +237,7 @@ export function PackagesPage() {
   const searchParams = useSearchParams();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const { isSubscribed, tier } = useSubscription();
-  const [loadingType, setLoadingType] = useState<0 | 1 | 2 | null>(null);
+  const [loadingType, setLoadingType] = useState<0 | 1 | 2 | 3 | null>(null);
   const [faqOpen, setFaqOpen] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState<Record<string, string>>({});
   const [showRegisteredBanner, setShowRegisteredBanner] = useState(false);
@@ -250,7 +250,7 @@ export function PackagesPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function handleGetStarted(type: 0 | 1 | 2) {
+  async function handleGetStarted(type: 0 | 1 | 2 | 3) {
     if (!isAuthenticated) {
       toast("Please register or log in to get started.");
       router.push("/register");
@@ -402,7 +402,7 @@ export function PackagesPage() {
           </div>
 
           <div className="bg-[#F5F5F5] rounded-3xl p-4 lg:p-6 max-w-[1600px] mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 lg:gap-6 lg:items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-5 lg:gap-6 lg:items-start">
               {PLANS.map((plan) => (
                 <PlanCard
                   key={plan.id}

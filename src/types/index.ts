@@ -27,7 +27,7 @@ export interface User {
   email: string
   name: string
   isSubscribed: boolean
-  subscriptionTier?: 'basic' | 'standard' | 'premium'
+  subscriptionTier?: 'basic' | 'standard' | 'premium' | 'starter'
   profile?: string
 }
 
