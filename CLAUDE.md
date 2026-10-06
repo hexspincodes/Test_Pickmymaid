@@ -20,7 +20,7 @@ Service platform for hiring maids and nannies in the UAE. Always generate clean,
 | Carousel | Embla Carousel |
 | State | Zustand |
 | Data fetching | React Query (TanStack) |
-| Images | `next/image` — remote images from `https://assets.pickmymaid.com` |
+| Images | `next/image` — remote images from DigitalOcean Spaces (`ASSET_BASE` in `src/lib/assets.ts`) |
 
 ---
 
@@ -345,7 +345,7 @@ function flagPath(nationality: string): string {
 
 ## API & Types
 
-Remote images: `https://assets.pickmymaid.com/{profile_path}` (whitelisted in `next.config.ts`).
+Remote images: `https://pickmymaidbucket.sfo3.cdn.digitaloceanspaces.com/{profile_path}` (DigitalOcean Spaces; base in `src/lib/assets.ts`, overridable via `NEXT_PUBLIC_ASSET_BASE_URL`; whitelisted in `next.config.ts` images + CSP).
 
 Core types in `src/types/index.ts`: `ApiMaid`, `ApiMaidEmploymentHistory`, `JobLanguage`, `Salary`.
 

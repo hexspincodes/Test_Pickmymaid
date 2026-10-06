@@ -56,7 +56,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`h-full antialiased ${manrope.variable}`}>
       <head>
-        <link rel="preconnect" href="https://assets.pickmymaid.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://pickmymaidbucket.sfo3.cdn.digitaloceanspaces.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://api.backendpickmymaid.site" />
         <link rel="dns-prefetch" href="https://api.backendpickmymaid.site" />
       </head>

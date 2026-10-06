@@ -20,7 +20,7 @@ import { api } from "@/lib/api";
 
 /* ─── Constants ──────────────────────────────────────────────────────────── */
 
-const ASSET_BASE = "https://assets.pickmymaid.com";
+import { ASSET_BASE } from "@/lib/assets";
 const LIMIT = 10;
 
 const LOCATIONS = [

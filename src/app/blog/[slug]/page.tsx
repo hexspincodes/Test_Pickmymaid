@@ -13,7 +13,7 @@ import { SplitButton } from '@/components/ui/SplitButton'
 // No ISR — every request fetches the post straight from the API.
 export const dynamic = 'force-dynamic'
 
-const ASSET_BASE = 'https://assets.pickmymaid.com'
+import { ASSET_BASE } from '@/lib/assets';
 
 type Props = { params: Promise<{ slug: string }> }
 

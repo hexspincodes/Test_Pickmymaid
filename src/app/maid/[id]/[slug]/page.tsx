@@ -9,7 +9,7 @@ import { seoConfig } from "@/config/seo.config";
 // admin edit shows up on the next page load with no cache to invalidate.
 export const dynamic = "force-dynamic";
 
-const ASSET_BASE = "https://assets.pickmymaid.com";
+import { ASSET_BASE } from "@/lib/assets";
 
 function getPhotoUrl(profile: string | null): string | undefined {
   if (!profile) return undefined;

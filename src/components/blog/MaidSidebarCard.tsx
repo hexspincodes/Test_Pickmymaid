@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import type { FeaturedJob } from "@/types";
 
-const ASSET_BASE = "https://assets.pickmymaid.com";
+import { ASSET_BASE } from "@/lib/assets";
 
 const AVATAR_COLORS = [
   "bg-rose-300",

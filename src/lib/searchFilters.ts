@@ -2,7 +2,8 @@ import type { ApiMaid } from "@/types";
 import type { Profile } from "@/components/cards/ProfileCard";
 import type { FindMaidsParams } from "@/lib/api";
 
-export const ASSET_BASE = "https://assets.pickmymaid.com";
+export { ASSET_BASE } from "@/lib/assets";
+import { ASSET_BASE } from "@/lib/assets";
 
 export const AVATAR_COLORS = [
   "bg-rose-300",

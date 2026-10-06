@@ -3,7 +3,7 @@ import Link from "next/link";
 import { CalendarDays, ArrowRight } from "lucide-react";
 import type { ApiBlog } from "@/types";
 
-const ASSET_BASE = "https://assets.pickmymaid.com";
+import { ASSET_BASE } from "@/lib/assets";
 
 function thumbnailSrc(thumbnail: string): string {
   if (!thumbnail) return "/og-default.jpg";

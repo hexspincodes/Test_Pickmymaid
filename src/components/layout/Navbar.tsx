@@ -26,7 +26,7 @@ import { PackageCardIcon } from "../icons/PackageCardIcon";
 import { useAuthStore } from "@/store/auth";
 import { verifyAuth, logoutUser, getPaymentDetails } from "@/lib/api";
 
-const ASSET_BASE = "https://assets.pickmymaid.com";
+import { ASSET_BASE } from "@/lib/assets";
 
 const navLinks = [
   { label: "Home", href: "/", icon: Home },

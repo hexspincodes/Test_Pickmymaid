@@ -4,7 +4,7 @@ import { BlogCard } from "@/components/ui/BlogCard";
 import { SplitButton } from "../ui/SplitButton";
 import { getBlogs } from "@/lib/api";
 
-const ASSET_BASE = "https://assets.pickmymaid.com";
+import { ASSET_BASE } from "@/lib/assets";
 
 function thumbnailSrc(thumbnail: string): string {
   if (!thumbnail) return "/og-default.jpg";

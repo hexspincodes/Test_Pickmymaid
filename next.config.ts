@@ -26,7 +26,7 @@ const CSP = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval' " : ""}https://www.googletagmanager.com https://www.clarity.ms https://scripts.clarity.ms https://googleads.g.doubleclick.net`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: https://assets.pickmymaid.com https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms https://c.clarity.ms https://www.google.com https://www.google.co.in https://googleads.g.doubleclick.net",
+  "img-src 'self' data: https://pickmymaidbucket.sfo3.cdn.digitaloceanspaces.com https://pickmymaidbucket.sfo3.digitaloceanspaces.com https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms https://c.clarity.ms https://www.google.com https://www.google.co.in https://googleads.g.doubleclick.net",
   "font-src 'self' data:",
   "connect-src 'self' https://api.backendpickmymaid.site https://www.google-analytics.com https://www.clarity.ms https://c.clarity.ms https://www.google.com https://analytics.google.com https://googleads.g.doubleclick.net",
   "frame-src https://www.youtube.com https://player.vimeo.com",
@@ -78,7 +78,8 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [
-      { protocol: "https", hostname: "assets.pickmymaid.com", pathname: "/**" },
+      { protocol: "https", hostname: "pickmymaidbucket.sfo3.cdn.digitaloceanspaces.com", pathname: "/**" },
+      { protocol: "https", hostname: "pickmymaidbucket.sfo3.digitaloceanspaces.com", pathname: "/**" },
     ],
     qualities: [75, 90],
     formats: ["image/webp"],
