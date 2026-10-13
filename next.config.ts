@@ -26,7 +26,9 @@ const CSP = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval' " : ""}https://www.googletagmanager.com https://www.clarity.ms https://scripts.clarity.ms https://googleads.g.doubleclick.net`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: https://pickmymaidbucket.sfo3.cdn.digitaloceanspaces.com https://pickmymaidbucket.sfo3.digitaloceanspaces.com https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms https://c.clarity.ms https://www.google.com https://www.google.co.in https://googleads.g.doubleclick.net",
+  // blob: covers local previews of files picked in upload forms (URL.createObjectURL).
+  "img-src 'self' data: blob: https://pickmymaidbucket.sfo3.cdn.digitaloceanspaces.com https://pickmymaidbucket.sfo3.digitaloceanspaces.com https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms https://c.clarity.ms https://www.google.com https://www.google.co.in https://googleads.g.doubleclick.net",
+  "media-src 'self' blob:",
   "font-src 'self' data:",
   "connect-src 'self' https://api.backendpickmymaid.site https://www.google-analytics.com https://www.clarity.ms https://c.clarity.ms https://www.google.com https://analytics.google.com https://googleads.g.doubleclick.net",
   "frame-src https://www.youtube.com https://player.vimeo.com",
@@ -59,6 +61,13 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        // The /careers job board was removed; job seekers now register
+        // from the "Find Jobs" tab on /register.
+        source: "/careers",
+        destination: "/register?as=job",
+        permanent: true,
+      },
+      {
         // /packages was renamed to /pricing.
         source: "/packages",
         destination: "/pricing",
@@ -83,6 +92,11 @@ const nextConfig: NextConfig = {
     ],
     qualities: [75, 90],
     formats: ["image/webp"],
+    // Dev-only: on NAT64 networks the bucket host also resolves to
+    // 64:ff9b::/96 addresses, which Next's optimizer rejects as private IPs
+    // ("url" parameter is not allowed). Serving images straight from the
+    // bucket in dev sidesteps that; production still optimizes.
+    unoptimized: isDev,
   },
 };
 

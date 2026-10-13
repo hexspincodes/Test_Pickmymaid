@@ -68,11 +68,39 @@ async function request<T>(path: string, config?: AxiosRequestConfig): Promise<T>
   }
 }
 
+const UPLOAD_TIMEOUT_MS = 5 * 60 * 1000
+
 export const api = {
   get: <T>(path: string, config?: AxiosRequestConfig) =>
     request<T>(path, { method: 'GET', ...config }),
   post: <T>(path: string, body: unknown, config?: AxiosRequestConfig) =>
     request<T>(path, { method: 'POST', data: body, ...config }),
+  // File uploads: multipart, long timeout, and no automatic retry — a retried
+  // upload that actually reached the server would create a duplicate record.
+  postForm: <T>(path: string, body: FormData, config?: AxiosRequestConfig) =>
+    requestOnce<T>(path, {
+      method: 'POST',
+      data: body,
+      timeout: UPLOAD_TIMEOUT_MS,
+      headers: { 'Content-Type': 'multipart/form-data' },
+      ...config,
+    }),
+}
+
+export interface JobSeekerResponse {
+  message: string
+}
+
+// Public job-seeker sign-up from /register?as=job (profile photo + intro video).
+export async function registerJobSeeker(
+  body: FormData,
+  onProgress?: (percent: number) => void,
+): Promise<JobSeekerResponse> {
+  return api.postForm<JobSeekerResponse>('/v1/jobfrontend', body, {
+    onUploadProgress: (e) => {
+      if (onProgress && e.total) onProgress(Math.round((e.loaded / e.total) * 100))
+    },
+  })
 }
 
 export async function getFeaturedJobs(): Promise<{ data: FeaturedJob[] }> {

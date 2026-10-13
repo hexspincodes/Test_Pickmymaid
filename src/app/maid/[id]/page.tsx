@@ -15,13 +15,9 @@ export default async function MaidRedirectPage({
 }) {
   const { id } = await params;
 
-  let maid;
-  try {
-    const res = await getMaid(id);
-    maid = res.data.jobApplication;
-  } catch {
-    notFound();
-  }
+  // Unknown ids come back as empty data; request failures go to the error page.
+  const maid = (await getMaid(id)).data?.jobApplication;
+  if (!maid) notFound();
 
   const slug = slugify(`${maid.name} ${maid.option} ${maid.nationality}`);
   permanentRedirect(`/maid/${id}/${slug}`);

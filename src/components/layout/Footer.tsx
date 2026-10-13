@@ -95,7 +95,7 @@ const navColumns = [
       { label: "About us", href: "/about-us" },
       { label: "How it works", href: "/how-it-works" },
       { label: "Contact us", href: "/contact" },
-      { label: "Careers", href: "/careers" },
+      { label: "Find a Job", href: "/register?as=job" },
       { label: "Blog", href: "/blog" },
     ],
   },

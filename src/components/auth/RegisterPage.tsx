@@ -4,13 +4,16 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { Eye, EyeOff, ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/auth";
 import { registerCustomer, verifyRegistrationOtp, loginCustomer, ApiError, NetworkError } from "@/lib/api";
 import { SplitButton } from "@/components/ui/SplitButton";
 import { OtpInput } from "@/components/ui/OtpInput";
+import { JobSeekerForm } from "@/components/auth/JobSeekerForm";
+import { CountrySelect } from "@/components/ui/CountrySelect";
+import { findCountryByCode } from "@/lib/countries";
 
 /* ─── Constants ─────────────────────────────────────────────── */
 
@@ -35,203 +38,6 @@ const POSITIONS = [
   "Cook",
 ];
 
-const COUNTRY_CODES = [
-  { code: "+971", flag: "🇦🇪", name: "UAE" },
-  { code: "+93", flag: "🇦🇫", name: "Afghanistan" },
-  { code: "+355", flag: "🇦🇱", name: "Albania" },
-  { code: "+213", flag: "🇩🇿", name: "Algeria" },
-  { code: "+376", flag: "🇦🇩", name: "Andorra" },
-  { code: "+244", flag: "🇦🇴", name: "Angola" },
-  { code: "+1268", flag: "🇦🇬", name: "Antigua and Barbuda" },
-  { code: "+54", flag: "🇦🇷", name: "Argentina" },
-  { code: "+374", flag: "🇦🇲", name: "Armenia" },
-  { code: "+61", flag: "🇦🇺", name: "Australia" },
-  { code: "+43", flag: "🇦🇹", name: "Austria" },
-  { code: "+994", flag: "🇦🇿", name: "Azerbaijan" },
-  { code: "+1242", flag: "🇧🇸", name: "Bahamas" },
-  { code: "+973", flag: "🇧🇭", name: "Bahrain" },
-  { code: "+880", flag: "🇧🇩", name: "Bangladesh" },
-  { code: "+1246", flag: "🇧🇧", name: "Barbados" },
-  { code: "+375", flag: "🇧🇾", name: "Belarus" },
-  { code: "+32", flag: "🇧🇪", name: "Belgium" },
-  { code: "+501", flag: "🇧🇿", name: "Belize" },
-  { code: "+229", flag: "🇧🇯", name: "Benin" },
-  { code: "+975", flag: "🇧🇹", name: "Bhutan" },
-  { code: "+591", flag: "🇧🇴", name: "Bolivia" },
-  { code: "+387", flag: "🇧🇦", name: "Bosnia and Herzegovina" },
-  { code: "+267", flag: "🇧🇼", name: "Botswana" },
-  { code: "+55", flag: "🇧🇷", name: "Brazil" },
-  { code: "+673", flag: "🇧🇳", name: "Brunei" },
-  { code: "+359", flag: "🇧🇬", name: "Bulgaria" },
-  { code: "+226", flag: "🇧🇫", name: "Burkina Faso" },
-  { code: "+257", flag: "🇧🇮", name: "Burundi" },
-  { code: "+855", flag: "🇰🇭", name: "Cambodia" },
-  { code: "+237", flag: "🇨🇲", name: "Cameroon" },
-  { code: "+1", flag: "🇨🇦", name: "Canada" },
-  { code: "+238", flag: "🇨🇻", name: "Cape Verde" },
-  { code: "+236", flag: "🇨🇫", name: "Central African Republic" },
-  { code: "+235", flag: "🇹🇩", name: "Chad" },
-  { code: "+56", flag: "🇨🇱", name: "Chile" },
-  { code: "+86", flag: "🇨🇳", name: "China" },
-  { code: "+57", flag: "🇨🇴", name: "Colombia" },
-  { code: "+269", flag: "🇰🇲", name: "Comoros" },
-  { code: "+243", flag: "🇨🇩", name: "Congo (DRC)" },
-  { code: "+242", flag: "🇨🇬", name: "Congo (Republic)" },
-  { code: "+506", flag: "🇨🇷", name: "Costa Rica" },
-  { code: "+385", flag: "🇭🇷", name: "Croatia" },
-  { code: "+53", flag: "🇨🇺", name: "Cuba" },
-  { code: "+357", flag: "🇨🇾", name: "Cyprus" },
-  { code: "+420", flag: "🇨🇿", name: "Czech Republic" },
-  { code: "+45", flag: "🇩🇰", name: "Denmark" },
-  { code: "+253", flag: "🇩🇯", name: "Djibouti" },
-  { code: "+1767", flag: "🇩🇲", name: "Dominica" },
-  { code: "+1809", flag: "🇩🇴", name: "Dominican Republic" },
-  { code: "+593", flag: "🇪🇨", name: "Ecuador" },
-  { code: "+20", flag: "🇪🇬", name: "Egypt" },
-  { code: "+503", flag: "🇸🇻", name: "El Salvador" },
-  { code: "+240", flag: "🇬🇶", name: "Equatorial Guinea" },
-  { code: "+291", flag: "🇪🇷", name: "Eritrea" },
-  { code: "+372", flag: "🇪🇪", name: "Estonia" },
-  { code: "+268", flag: "🇸🇿", name: "Eswatini" },
-  { code: "+251", flag: "🇪🇹", name: "Ethiopia" },
-  { code: "+679", flag: "🇫🇯", name: "Fiji" },
-  { code: "+358", flag: "🇫🇮", name: "Finland" },
-  { code: "+33", flag: "🇫🇷", name: "France" },
-  { code: "+241", flag: "🇬🇦", name: "Gabon" },
-  { code: "+220", flag: "🇬🇲", name: "Gambia" },
-  { code: "+995", flag: "🇬🇪", name: "Georgia" },
-  { code: "+49", flag: "🇩🇪", name: "Germany" },
-  { code: "+233", flag: "🇬🇭", name: "Ghana" },
-  { code: "+30", flag: "🇬🇷", name: "Greece" },
-  { code: "+1473", flag: "🇬🇩", name: "Grenada" },
-  { code: "+502", flag: "🇬🇹", name: "Guatemala" },
-  { code: "+224", flag: "🇬🇳", name: "Guinea" },
-  { code: "+245", flag: "🇬🇼", name: "Guinea-Bissau" },
-  { code: "+592", flag: "🇬🇾", name: "Guyana" },
-  { code: "+509", flag: "🇭🇹", name: "Haiti" },
-  { code: "+504", flag: "🇭🇳", name: "Honduras" },
-  { code: "+852", flag: "🇭🇰", name: "Hong Kong" },
-  { code: "+36", flag: "🇭🇺", name: "Hungary" },
-  { code: "+354", flag: "🇮🇸", name: "Iceland" },
-  { code: "+91", flag: "🇮🇳", name: "India" },
-  { code: "+62", flag: "🇮🇩", name: "Indonesia" },
-  { code: "+98", flag: "🇮🇷", name: "Iran" },
-  { code: "+964", flag: "🇮🇶", name: "Iraq" },
-  { code: "+353", flag: "🇮🇪", name: "Ireland" },
-  { code: "+972", flag: "🇮🇱", name: "Israel" },
-  { code: "+39", flag: "🇮🇹", name: "Italy" },
-  { code: "+225", flag: "🇨🇮", name: "Ivory Coast" },
-  { code: "+1876", flag: "🇯🇲", name: "Jamaica" },
-  { code: "+81", flag: "🇯🇵", name: "Japan" },
-  { code: "+962", flag: "🇯🇴", name: "Jordan" },
-  { code: "+7", flag: "🇰🇿", name: "Kazakhstan" },
-  { code: "+254", flag: "🇰🇪", name: "Kenya" },
-  { code: "+686", flag: "🇰🇮", name: "Kiribati" },
-  { code: "+383", flag: "🇽🇰", name: "Kosovo" },
-  { code: "+965", flag: "🇰🇼", name: "Kuwait" },
-  { code: "+996", flag: "🇰🇬", name: "Kyrgyzstan" },
-  { code: "+856", flag: "🇱🇦", name: "Laos" },
-  { code: "+371", flag: "🇱🇻", name: "Latvia" },
-  { code: "+961", flag: "🇱🇧", name: "Lebanon" },
-  { code: "+266", flag: "🇱🇸", name: "Lesotho" },
-  { code: "+231", flag: "🇱🇷", name: "Liberia" },
-  { code: "+218", flag: "🇱🇾", name: "Libya" },
-  { code: "+423", flag: "🇱🇮", name: "Liechtenstein" },
-  { code: "+370", flag: "🇱🇹", name: "Lithuania" },
-  { code: "+352", flag: "🇱🇺", name: "Luxembourg" },
-  { code: "+853", flag: "🇲🇴", name: "Macau" },
-  { code: "+261", flag: "🇲🇬", name: "Madagascar" },
-  { code: "+265", flag: "🇲🇼", name: "Malawi" },
-  { code: "+60", flag: "🇲🇾", name: "Malaysia" },
-  { code: "+960", flag: "🇲🇻", name: "Maldives" },
-  { code: "+223", flag: "🇲🇱", name: "Mali" },
-  { code: "+356", flag: "🇲🇹", name: "Malta" },
-  { code: "+222", flag: "🇲🇷", name: "Mauritania" },
-  { code: "+230", flag: "🇲🇺", name: "Mauritius" },
-  { code: "+52", flag: "🇲🇽", name: "Mexico" },
-  { code: "+373", flag: "🇲🇩", name: "Moldova" },
-  { code: "+377", flag: "🇲🇨", name: "Monaco" },
-  { code: "+976", flag: "🇲🇳", name: "Mongolia" },
-  { code: "+382", flag: "🇲🇪", name: "Montenegro" },
-  { code: "+212", flag: "🇲🇦", name: "Morocco" },
-  { code: "+258", flag: "🇲🇿", name: "Mozambique" },
-  { code: "+95", flag: "🇲🇲", name: "Myanmar" },
-  { code: "+264", flag: "🇳🇦", name: "Namibia" },
-  { code: "+674", flag: "🇳🇷", name: "Nauru" },
-  { code: "+977", flag: "🇳🇵", name: "Nepal" },
-  { code: "+31", flag: "🇳🇱", name: "Netherlands" },
-  { code: "+64", flag: "🇳🇿", name: "New Zealand" },
-  { code: "+505", flag: "🇳🇮", name: "Nicaragua" },
-  { code: "+227", flag: "🇳🇪", name: "Niger" },
-  { code: "+234", flag: "🇳🇬", name: "Nigeria" },
-  { code: "+850", flag: "🇰🇵", name: "North Korea" },
-  { code: "+389", flag: "🇲🇰", name: "North Macedonia" },
-  { code: "+47", flag: "🇳🇴", name: "Norway" },
-  { code: "+968", flag: "🇴🇲", name: "Oman" },
-  { code: "+92", flag: "🇵🇰", name: "Pakistan" },
-  { code: "+680", flag: "🇵🇼", name: "Palau" },
-  { code: "+970", flag: "🇵🇸", name: "Palestine" },
-  { code: "+507", flag: "🇵🇦", name: "Panama" },
-  { code: "+675", flag: "🇵🇬", name: "Papua New Guinea" },
-  { code: "+595", flag: "🇵🇾", name: "Paraguay" },
-  { code: "+51", flag: "🇵🇪", name: "Peru" },
-  { code: "+63", flag: "🇵🇭", name: "Philippines" },
-  { code: "+48", flag: "🇵🇱", name: "Poland" },
-  { code: "+351", flag: "🇵🇹", name: "Portugal" },
-  { code: "+974", flag: "🇶🇦", name: "Qatar" },
-  { code: "+40", flag: "🇷🇴", name: "Romania" },
-  { code: "+7", flag: "🇷🇺", name: "Russia" },
-  { code: "+250", flag: "🇷🇼", name: "Rwanda" },
-  { code: "+1758", flag: "🇱🇨", name: "Saint Lucia" },
-  { code: "+685", flag: "🇼🇸", name: "Samoa" },
-  { code: "+378", flag: "🇸🇲", name: "San Marino" },
-  { code: "+966", flag: "🇸🇦", name: "Saudi Arabia" },
-  { code: "+221", flag: "🇸🇳", name: "Senegal" },
-  { code: "+381", flag: "🇷🇸", name: "Serbia" },
-  { code: "+248", flag: "🇸🇨", name: "Seychelles" },
-  { code: "+232", flag: "🇸🇱", name: "Sierra Leone" },
-  { code: "+65", flag: "🇸🇬", name: "Singapore" },
-  { code: "+421", flag: "🇸🇰", name: "Slovakia" },
-  { code: "+386", flag: "🇸🇮", name: "Slovenia" },
-  { code: "+677", flag: "🇸🇧", name: "Solomon Islands" },
-  { code: "+252", flag: "🇸🇴", name: "Somalia" },
-  { code: "+27", flag: "🇿🇦", name: "South Africa" },
-  { code: "+82", flag: "🇰🇷", name: "South Korea" },
-  { code: "+211", flag: "🇸🇸", name: "South Sudan" },
-  { code: "+34", flag: "🇪🇸", name: "Spain" },
-  { code: "+94", flag: "🇱🇰", name: "Sri Lanka" },
-  { code: "+249", flag: "🇸🇩", name: "Sudan" },
-  { code: "+597", flag: "🇸🇷", name: "Suriname" },
-  { code: "+46", flag: "🇸🇪", name: "Sweden" },
-  { code: "+41", flag: "🇨🇭", name: "Switzerland" },
-  { code: "+963", flag: "🇸🇾", name: "Syria" },
-  { code: "+886", flag: "🇹🇼", name: "Taiwan" },
-  { code: "+992", flag: "🇹🇯", name: "Tajikistan" },
-  { code: "+255", flag: "🇹🇿", name: "Tanzania" },
-  { code: "+66", flag: "🇹🇭", name: "Thailand" },
-  { code: "+670", flag: "🇹🇱", name: "Timor-Leste" },
-  { code: "+228", flag: "🇹🇬", name: "Togo" },
-  { code: "+676", flag: "🇹🇴", name: "Tonga" },
-  { code: "+1868", flag: "🇹🇹", name: "Trinidad and Tobago" },
-  { code: "+216", flag: "🇹🇳", name: "Tunisia" },
-  { code: "+90", flag: "🇹🇷", name: "Turkey" },
-  { code: "+993", flag: "🇹🇲", name: "Turkmenistan" },
-  { code: "+688", flag: "🇹🇻", name: "Tuvalu" },
-  { code: "+256", flag: "🇺🇬", name: "Uganda" },
-  { code: "+380", flag: "🇺🇦", name: "Ukraine" },
-  { code: "+44", flag: "🇬🇧", name: "United Kingdom" },
-  { code: "+1", flag: "🇺🇸", name: "United States" },
-  { code: "+598", flag: "🇺🇾", name: "Uruguay" },
-  { code: "+998", flag: "🇺🇿", name: "Uzbekistan" },
-  { code: "+678", flag: "🇻🇺", name: "Vanuatu" },
-  { code: "+379", flag: "🇻🇦", name: "Vatican City" },
-  { code: "+58", flag: "🇻🇪", name: "Venezuela" },
-  { code: "+84", flag: "🇻🇳", name: "Vietnam" },
-  { code: "+967", flag: "🇾🇪", name: "Yemen" },
-  { code: "+260", flag: "🇿🇲", name: "Zambia" },
-  { code: "+263", flag: "🇿🇼", name: "Zimbabwe" },
-];
-
 /* ─── Types ──────────────────────────────────────────────────── */
 
 interface FormData {
@@ -239,7 +45,7 @@ interface FormData {
   email: string;
   password: string;
   confirm_password: string;
-  country_code: string;
+  country_code: string; // ISO code, e.g. "AE" — several countries share a dialing code
   mobile: string;
   emirate_of_residence: string;
   position_required: string;
@@ -257,6 +63,17 @@ export function RegisterPage() {
   }, []);
 
   const rawReturn = searchParams.get("returnTo") ?? "";
+  // The chosen form lives in the URL (?as=customer|job) so the navbar
+  // "Register" link (/register) always lands on the chooser and browser Back
+  // returns to it. Visitors sent from a hire/contact/pricing CTA (?returnTo=)
+  // are clearly customers, so they go straight to the customer form.
+  const asParam = searchParams.get("as");
+  const view: "choose" | "customer" | "job" =
+    asParam === "job"
+      ? "job"
+      : asParam === "customer" || rawReturn
+        ? "customer"
+        : "choose";
   const returnTo = rawReturn.startsWith("/") && !rawReturn.startsWith("//") ? rawReturn : "/pricing";
 
   const [showPassword, setShowPassword] = useState(false);
@@ -287,9 +104,18 @@ export function RegisterPage() {
     register,
     handleSubmit,
     watch,
+    control,
     formState: { errors, isSubmitting },
   } = useForm<FormData>({
-    defaultValues: { country_code: "+971" },
+    defaultValues: { country_code: "AE" },
+  });
+
+  const emailField = register("email", {
+    required: "Email is required",
+    pattern: {
+      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+      message: "Enter a valid email address",
+    },
   });
 
   async function onSubmit(data: FormData) {
@@ -300,11 +126,11 @@ export function RegisterPage() {
     const body = {
       first_name,
       last_name,
-      email: data.email,
+      email: data.email.trim().toLowerCase(),
       password: data.password,
       emirate_of_residence: data.emirate_of_residence,
       position_required: data.position_required,
-      phone: `${data.country_code}${data.mobile}`,
+      phone: `${findCountryByCode(data.country_code)?.dial ?? "+971"}${data.mobile}`,
     };
 
     try {
@@ -397,6 +223,75 @@ export function RegisterPage() {
         ? "border-red-400 bg-red-50 focus:border-red-500"
         : "border-gray-200 bg-white focus:border-primary"
     }`;
+
+  if (view === "job") {
+    return <JobSeekerForm onBack={() => router.push("/register")} />;
+  }
+
+  if (view === "choose") {
+    return (
+      <div className="bg-white min-h-screen py-26 lg:py-32 px-4">
+        <h1 className="text-[26px] lg:text-[32px] font-semibold text-dark text-center tracking-[-0.5px]">
+          Let&rsquo;s get started. Choose an option.
+        </h1>
+
+        <div className="mt-12 lg:mt-16 max-w-247.5 mx-auto grid md:grid-cols-2 gap-8 lg:gap-x-47.5 items-center">
+          <ChoiceCard
+            watermark="FAMILY"
+            image={
+              <Image
+                src="/images/register/family.webp"
+                alt="Family looking for a nanny or maid"
+                width={370}
+                height={338}
+                className="h-42.5 w-auto mix-blend-multiply"
+              />
+            }
+            title="I’m looking for a Nanny or Maid"
+            description="Search & contact hundreds of qualified nannies and maids ready to join in the UAE."
+            cta={
+              <Link href="/register?as=customer" className={choiceBtnCls}>
+                Find Nannies
+              </Link>
+            }
+          />
+          <ChoiceCard
+            watermark="NANNY"
+            image={
+              <Image
+                src="/images/home/hero-maid.webp"
+                alt="Domestic worker looking for a job"
+                width={1200}
+                height={1200}
+                className="h-53 w-auto"
+              />
+            }
+            title="I’m looking for a job"
+            description="Create your account for FREE and get matched with amazing families near you."
+            cta={
+              <Link href="/register?as=job" className={choiceBtnCls}>
+                Find Jobs
+              </Link>
+            }
+          />
+        </div>
+
+        <div className="mt-12 flex justify-center">
+          <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-5 rounded-2xl bg-primary-50 border border-primary-100 px-6 py-4">
+            <p className="text-base font-semibold text-dark">
+              Already have an account?
+            </p>
+            <Link
+              href="/login"
+              className="px-7 py-2.5 rounded-full bg-dark text-white text-[15px] font-semibold hover:bg-primary transition-colors"
+            >
+              Log In
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-[#F5F5F5] min-h-screen flex items-center justify-center py-26 px-4">
@@ -525,13 +420,14 @@ export function RegisterPage() {
                   type="email"
                   placeholder="Enter your email address"
                   autoComplete="email"
-                  {...register("email", {
-                    required: "Email is required",
-                    pattern: {
-                      value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                      message: "Enter a valid email address",
-                    },
-                  })}
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  {...emailField}
+                  onChange={(e) => {
+                    // Lowercase only — typed, pasted or autofilled.
+                    e.target.value = e.target.value.toLowerCase();
+                    return emailField.onChange(e);
+                  }}
                   className={inputCls(!!errors.email)}
                 />
                 {errors.email && (
@@ -630,28 +526,25 @@ export function RegisterPage() {
                 Mobile Number
               </label>
               <div
-                className={`flex rounded-xl border overflow-hidden transition-colors ${
+                className={`flex rounded-xl border transition-colors ${
                   errors.mobile
                     ? "border-red-400 bg-red-50"
                     : "border-gray-200 bg-white"
                 } focus-within:border-primary`}
               >
                 {/* Country code */}
-                <div className="relative shrink-0 border-r border-gray-200">
-                  <select
-                    {...register("country_code")}
-                    className="h-full pl-3 pr-7 py-3 text-sm text-dark bg-transparent appearance-none outline-none cursor-pointer"
-                    aria-label="Country code"
-                  >
-                    {COUNTRY_CODES.map(({ code, flag, name }) => (
-                      <option key={`${code}-${name}`} value={code}>
-                        {flag} {code}
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown
-                    className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted pointer-events-none"
-                    strokeWidth={2}
+                <div className="shrink-0 border-r border-gray-200">
+                  <Controller
+                    control={control}
+                    name="country_code"
+                    render={({ field }) => (
+                      <CountrySelect
+                        mode="dial"
+                        value={field.value}
+                        onChange={field.onChange}
+                        ariaLabel="Country code"
+                      />
+                    )}
                   />
                 </div>
                 {/* Phone input */}
@@ -748,7 +641,7 @@ export function RegisterPage() {
             </div>
 
             {/* Submit */}
-            <div className="mx-auto mt-2 w-full">
+            <div className="mx-auto mt-2 w-full flex flex-col gap-3">
               <button
                 type="submit"
                 disabled={isSubmitting}
@@ -756,6 +649,13 @@ export function RegisterPage() {
               >
                 {isSubmitting ? "Sending OTP…" : "Register"}
               </button>
+              <Link
+                href="/register"
+                onClick={() => setServerError(null)}
+                className="text-sm text-muted hover:text-dark transition-colors self-start"
+              >
+                ← Back
+              </Link>
             </div>
           </form>
           )}
@@ -771,6 +671,48 @@ export function RegisterPage() {
             </Link>
           </p>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Choice card (register type picker) ────────────────────── */
+
+const choiceBtnCls =
+  "inline-block mt-5 px-7.5 py-2.5 rounded-full bg-primary/85 text-white text-[15px] font-medium shadow-[0_8px_16px_rgba(255,116,66,0.3)] hover:bg-primary transition-colors cursor-pointer";
+
+function ChoiceCard({
+  watermark,
+  image,
+  title,
+  description,
+  cta,
+}: {
+  watermark: string;
+  image: React.ReactNode;
+  title: string;
+  description: string;
+  cta: React.ReactNode;
+}) {
+  return (
+    <div className="w-full max-w-100 mx-auto rounded-3xl border border-gray-300/70 bg-white overflow-hidden">
+      <div className="relative h-53 flex justify-center items-end border-b border-gray-300/70 overflow-hidden">
+        <span
+          className="absolute top-6 inset-x-0 text-center text-[64px] sm:text-[80px] font-extrabold leading-none tracking-wide text-[#F2F2F2] select-none"
+          aria-hidden="true"
+        >
+          {watermark}
+        </span>
+        <div className="relative">{image}</div>
+      </div>
+      <div className="px-8 sm:px-10 pt-6 pb-6">
+        <h2 className="text-[22px] font-bold text-dark leading-snug tracking-[-0.3px]">
+          {title}
+        </h2>
+        <p className="mt-2.5 text-[15px] text-dark/80 leading-relaxed">
+          {description}
+        </p>
+        {cta}
       </div>
     </div>
   );

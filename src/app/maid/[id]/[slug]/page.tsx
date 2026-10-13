@@ -90,13 +90,11 @@ export default async function MaidProfileRoute({
   const id = rawId;
   const slug = rawSlug;
 
-  let maid: ApiMaid;
-  try {
-    maid = (await getMaid(id)).data.jobApplication;
-    if (!maid.ref_number) notFound();
-  } catch {
-    notFound();
-  }
+  // The API answers an unknown id with 200 and empty data, so only that is a
+  // real "not found". Network/API failures throw to the error page instead —
+  // otherwise one flaky request would redirect a live profile to the home page.
+  const maid = (await getMaid(id)).data?.jobApplication;
+  if (!maid?.ref_number) notFound();
 
   const photoUrl = getPhotoUrl(maid.profile);
   const canonical = `${seoConfig.siteUrl}/maid/${maid.ref_number}/${slug}`;

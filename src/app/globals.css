@@ -226,3 +226,17 @@ img {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
+
+/* iOS Safari zooms the page in when a focused field's text is under 16px
+   (most inputs here are text-sm / 14px). Bump form controls to 16px on iOS
+   only, so the layout elsewhere stays as designed. This sits outside any
+   @layer so it wins over Tailwind's text-* utilities; fields already set
+   larger (e.g. the text-lg OTP boxes) are left alone. */
+@supports (-webkit-touch-callout: none) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not(.text-lg),
+  select:not(.text-lg),
+  textarea:not(.text-lg),
+  [contenteditable="true"] {
+    font-size: 16px;
+  }
+}

@@ -39,29 +39,12 @@ const navLinks = [
   { label: "Blogs", href: "/blog", icon: Newspaper },
 ];
 
+// Only the drawer itself fades; its header, icons and links render at once so
+// the menu is usable the moment it opens on mobile.
 const drawerVariants: Variants = {
   hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      duration: 0.25,
-      ease: [0.22, 1, 0.36, 1],
-      when: "beforeChildren",
-      staggerChildren: 0.04,
-      delayChildren: 0.08,
-    },
-  },
-  exit: { opacity: 0, transition: { duration: 0.2, ease: "easeIn" } },
-};
-
-const drawerHeaderVariants: Variants = {
-  hidden: { opacity: 0, y: -12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.25, ease: [0.22, 1, 0.36, 1] } },
-};
-
-const navItemVariants: Variants = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.25, ease: [0.22, 1, 0.36, 1] } },
+  visible: { opacity: 1, transition: { duration: 0.15, ease: "easeOut" } },
+  exit: { opacity: 0, transition: { duration: 0.15, ease: "easeIn" } },
 };
 
 function getInitials(name: string) {
@@ -425,10 +408,7 @@ export function Navbar() {
             className="fixed inset-0 z-[60] bg-white flex flex-col xl:hidden"
           >
             {/* Drawer header */}
-            <motion.div
-              variants={drawerHeaderVariants}
-              className="flex items-center justify-between px-6 py-4 border-b border-gray-100"
-            >
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
               <Link
                 href="/"
                 onClick={(e) => {
@@ -454,39 +434,37 @@ export function Navbar() {
               >
                 <X className="w-5 h-5 text-dark" />
               </button>
-            </motion.div>
+            </div>
 
             {/* Nav links */}
             <nav className="flex-1 overflow-y-auto py-4 px-4">
               {navLinks.map((link) =>
                 link.href === "/search" ? (
-                  <motion.a
+                  <a
                     key={link.href}
-                    variants={navItemVariants}
                     href={link.href}
                     onClick={() => setMobileOpen(false)}
-                    className="flex items-center gap-3 text-lg font-medium text-dark hover:text-primary hover:bg-primary-50 px-4 py-3 rounded-xl transition-all duration-200"
+                    className="flex items-center gap-3 text-lg font-medium text-dark hover:text-primary hover:bg-primary-50 px-4 py-3 rounded-xl transition-colors duration-200"
                   >
                     <link.icon className="w-6 h-6 text-muted shrink-0" strokeWidth={1.75} />
                     {link.label}
-                  </motion.a>
+                  </a>
                 ) : (
-                  <motion.div key={link.href} variants={navItemVariants}>
-                    <Link
-                      href={link.href}
-                      onClick={() => setMobileOpen(false)}
-                      className="flex items-center gap-3 text-lg font-medium text-dark hover:text-primary hover:bg-primary-50 px-4 py-3 rounded-xl transition-all duration-200"
-                    >
-                      <link.icon className="w-6 h-6 text-muted shrink-0" strokeWidth={1.75} />
-                      {link.label}
-                    </Link>
-                  </motion.div>
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-3 text-lg font-medium text-dark hover:text-primary hover:bg-primary-50 px-4 py-3 rounded-xl transition-colors duration-200"
+                  >
+                    <link.icon className="w-6 h-6 text-muted shrink-0" strokeWidth={1.75} />
+                    {link.label}
+                  </Link>
                 ),
               )}
             </nav>
 
             {/* Auth section */}
-            <motion.div variants={navItemVariants}>{mobileAuth}</motion.div>
+            <div>{mobileAuth}</div>
           </motion.div>
         )}
       </AnimatePresence>
