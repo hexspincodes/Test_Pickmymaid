@@ -4,6 +4,10 @@ import type { FindMaidsParams } from "@/lib/api";
 
 export { ASSET_BASE } from "@/lib/assets";
 import { ASSET_BASE } from "@/lib/assets";
+import { nationalitySearchTerms } from "@/lib/countries";
+import { SKILLS } from "@/lib/maidFormOptions";
+import { matchSkills } from "@/lib/skillSearch";
+import { maidVideoLink } from "@/lib/youtube";
 
 export const AVATAR_COLORS = [
   "bg-rose-300",
@@ -164,8 +168,8 @@ export function mapMaidToProfile(maid: ApiMaid, index: number): Profile {
     desiredJob: maid.option,
     service: maid.service,
     availability: maid.availability ? "Immediate" : "Not Available",
-    secondaryAction: maid.youtube_link?.trim() ? "watch" : "hire",
-    youtubeLink: maid.youtube_link?.trim() || undefined,
+    secondaryAction: maidVideoLink(maid.youtube_link) ? "watch" : "hire",
+    youtubeLink: maidVideoLink(maid.youtube_link) || undefined,
     avatarBg: AVATAR_COLORS[index % AVATAR_COLORS.length],
     initials: getInitials(maid.name),
     imageBg: IMAGE_GRADIENTS[index % IMAGE_GRADIENTS.length],
@@ -197,6 +201,17 @@ export function parseActiveFilters(searchParams: URLSearchParams): ActiveFilters
   };
 }
 
+// Skills the search covers: the `skills` param plus any skill the typed
+// keyword (`q`) refers to, e.g. "childcare" → "Child Care".
+export function searchedSkills(searchParams: URLSearchParams): {
+  skills: string[];
+  fromKeyword: boolean;
+} {
+  const typed = matchSkills(searchParams.get("q") ?? "", SKILLS);
+  const skills = [...new Set([...parseParam(searchParams.get("skills")), ...typed])];
+  return { skills, fromKeyword: typed.length > 0 };
+}
+
 export function buildFindMaidsParams(
   searchParams: URLSearchParams,
   page: number,
@@ -206,10 +221,14 @@ export function buildFindMaidsParams(
   const salaryMax = searchParams.get("salaryMax") ?? "";
   const sortValue = (searchParams.get("sort") ?? "") as SortValue;
   const searchQuery = searchParams.get("q") ?? "";
+  const { skills, fromKeyword } = searchedSkills(searchParams);
 
   return {
     page,
-    searchParams: searchQuery || undefined,
+    // A keyword that names a skill searches by that skill instead of by text,
+    // which only matches exact wording.
+    searchParams: fromKeyword ? undefined : searchQuery || undefined,
+    skills: skills.join(",") || undefined,
     option: filters.option.join(",") || undefined,
     location: filters.location.join(",") || undefined,
     availability: filters.availability.join(",") || undefined,
@@ -217,10 +236,7 @@ export function buildFindMaidsParams(
     religion: filters.religion.map((r) => r.toLowerCase()).join(",") || undefined,
     visa: filters.visa.join(",") || undefined,
     salary: filters.salary.join(",") || undefined,
-    nationality:
-      filters.nationality
-        .map((n) => (n === "Sri Lanka" ? "Srilanka" : n))
-        .join(",") || undefined,
+    nationality: filters.nationality.flatMap(nationalitySearchTerms).join(",") || undefined,
     salaryFrom: salaryMin ? parseInt(salaryMin, 10) : undefined,
     salaryTo: salaryMax ? parseInt(salaryMax, 10) : undefined,
     sort: sortValue || undefined,

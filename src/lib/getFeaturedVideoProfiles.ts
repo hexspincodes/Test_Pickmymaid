@@ -1,5 +1,6 @@
 import { findMaids } from "@/lib/api";
 import { mapMaidToProfile } from "@/lib/searchFilters";
+import { maidVideoLink } from "@/lib/youtube";
 import type { Profile } from "@/components/cards/ProfileCard";
 import type { ApiMaid } from "@/types";
 
@@ -38,7 +39,7 @@ async function collectVideoMaids(
       const maids = res?.data?.maids ?? [];
       if (maids.length > 0) anyMaids = true;
       for (const maid of maids) {
-        if (maid.youtube_link?.trim()) collected.push(maid);
+        if (maidVideoLink(maid.youtube_link)) collected.push(maid);
       }
     }
     if (!anyMaids) break;

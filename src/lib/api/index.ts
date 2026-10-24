@@ -103,6 +103,21 @@ export async function registerJobSeeker(
   })
 }
 
+export interface ApiSkill {
+  _id: string
+  name: string
+  is_active: boolean
+}
+
+export interface GetSkillsResponse {
+  data: { skills: ApiSkill[] }
+}
+
+// Active skills managed from the admin panel's Skills page.
+export async function getSkills(): Promise<GetSkillsResponse> {
+  return api.get<GetSkillsResponse>('/v1/skills/')
+}
+
 export async function getFeaturedJobs(): Promise<{ data: FeaturedJob[] }> {
   return api.get<{ data: FeaturedJob[] }>('/v1/job/featured')
 }

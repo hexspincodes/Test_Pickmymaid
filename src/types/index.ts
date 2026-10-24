@@ -100,6 +100,10 @@ export interface ApiMaid {
   whatsapp?: string
   botim?: string
   email?: string
+  /* Same contacts under the names the registration form submits them with */
+  uae_no?: string
+  whatsapp_no?: string
+  botim_number?: string
 }
 
 export interface ApiBlog {

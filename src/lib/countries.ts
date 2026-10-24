@@ -290,6 +290,17 @@ const NATIONALITY_ALIASES: Record<string, string> = {
   cameroonian: "CM",
 };
 
+// A country name plus the older spellings stored for it, so a search for
+// "Philippines" also matches records saved as "Filipino".
+export function nationalitySearchTerms(nationality: string): string[] {
+  const country = findCountryByNationality(nationality);
+  if (!country) return [nationality];
+  const aliases = Object.keys(NATIONALITY_ALIASES)
+    .filter((alias) => NATIONALITY_ALIASES[alias] === country.code)
+    .map((alias) => (alias === "srilanka" ? "Srilanka" : alias.replace(/\b\w/g, (c) => c.toUpperCase())));
+  return [country.name, ...aliases];
+}
+
 export function findCountryByNationality(nationality: string | undefined) {
   const key = nationality?.trim().toLowerCase();
   if (!key) return undefined;

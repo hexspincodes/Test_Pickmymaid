@@ -31,7 +31,8 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { registerJobSeeker, ApiError, NetworkError } from "@/lib/api";
+import { registerJobSeeker, getSkills, ApiError, NetworkError } from "@/lib/api";
+import { DEFAULT_YOUTUBE_LINK } from "@/lib/youtube";
 import { findCountryByCode } from "@/lib/countries";
 import {
   DAYS_OFF,
@@ -123,7 +124,6 @@ interface JobSeekerData {
   whatsapp_no: string;
   current_location: string;
   // Other details
-  youtube_link: string;
   available_from: string;
   visa_status: string;
   visa_expire: string;
@@ -173,7 +173,7 @@ const STEPS: Step[] = [
     title: "Other Details",
     subtitle: "Visa, skills and languages",
     icon: ClipboardList,
-    fields: ["youtube_link", "available_from", "visa_status", "visa_expire", "skills", "option", "languages"],
+    fields: ["available_from", "visa_status", "visa_expire", "skills", "option", "languages"],
   },
   {
     title: "Employment History",
@@ -384,6 +384,21 @@ export function JobSeekerForm({ onBack }: { onBack?: () => void }) {
   // Set once the visitor tries to leave the current tab, so the message for
   // things outside react-hook-form (files, skills, list rows) shows up live.
   const [stepChecked, setStepChecked] = useState(false);
+  // Active skills from the admin panel; the built-in list covers a failed request.
+  const [skillOptions, setSkillOptions] = useState<string[]>(SKILLS);
+
+  useEffect(() => {
+    let cancelled = false;
+    getSkills()
+      .then((res) => {
+        const names = (res.data?.skills || []).map((s) => s.name);
+        if (!cancelled && names.length) setSkillOptions(names);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const profileUrl = usePreviewUrl(profile);
   const videoUrl = usePreviewUrl(video);
@@ -580,7 +595,7 @@ export function JobSeekerForm({ onBack }: { onBack?: () => void }) {
       botim_number: botim,
       whatsapp_no: whatsapp,
       current_location: data.current_location,
-      youtube_link: data.youtube_link,
+      youtube_link: DEFAULT_YOUTUBE_LINK,
       available_from: data.available_from,
       visa_status: data.visa_status,
       visa_expire: data.visa_expire,
@@ -1063,21 +1078,6 @@ export function JobSeekerForm({ onBack }: { onBack?: () => void }) {
               {step === 2 && (
                 <div className="flex flex-col gap-6">
                   <div className="grid sm:grid-cols-2 gap-5">
-                    <Field label="Youtube Link" htmlFor="job_youtube_link" required error={errors.youtube_link?.message}>
-                      <input
-                        id="job_youtube_link"
-                        type="url"
-                        placeholder="Youtube Link"
-                        {...register("youtube_link", {
-                          ...requiredText("the Youtube link"),
-                          pattern: {
-                            value: /^https?:\/\/\S+$/,
-                            message: "Enter a full link starting with https://",
-                          },
-                        })}
-                        className={inputCls(!!errors.youtube_link)}
-                      />
-                    </Field>
                     <Field label="Available from" htmlFor="job_available_from" required error={errors.available_from?.message}>
                       <input
                         id="job_available_from"
@@ -1116,8 +1116,9 @@ export function JobSeekerForm({ onBack }: { onBack?: () => void }) {
                   </div>
 
                   <SectionCard title="Skills" required>
+                    <p className="mb-3 text-xs text-gray-500">Select all that apply.</p>
                     <div className="flex flex-wrap gap-2">
-                      {SKILLS.map((s) => {
+                      {skillOptions.map((s) => {
                         const on = skills.includes(s);
                         return (
                           <button

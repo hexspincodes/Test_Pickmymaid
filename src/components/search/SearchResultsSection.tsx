@@ -25,6 +25,7 @@ import {
   parseParam,
   parseActiveFilters,
   buildFindMaidsParams,
+  searchedSkills,
   type SortValue,
   type FilterKey,
 } from "@/lib/searchFilters";
@@ -716,11 +717,17 @@ export function SearchResultsSection({
     </div>
   );
 
+  const { skills: skillsSearched } = searchedSkills(searchParams);
+  const skillLabel = skillsSearched.join(", ");
   const resultLabel = loading
     ? null
     : total > 0
-      ? `Found ${total} result${total !== 1 ? "s" : ""} according to your requirements`
-      : `No results${searchQuery ? ` for "${searchQuery}"` : ""}`;
+      ? skillLabel
+        ? `Found ${total} ${skillLabel} profile${total !== 1 ? "s" : ""}`
+        : `Found ${total} result${total !== 1 ? "s" : ""} according to your requirements`
+      : skillLabel
+        ? `No ${skillLabel} profiles found`
+        : `No results${searchQuery ? ` for "${searchQuery}"` : ""}`;
 
   return (
     <>

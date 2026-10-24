@@ -77,9 +77,9 @@ export function MaidSessionProvider({
           type: "success",
           data: {
             isInWishlist: job.is_in_wishlist ?? false,
-            phone: job.phone,
-            whatsapp: job.whatsapp,
-            botim: job.botim,
+            phone: job.phone || job.uae_no,
+            whatsapp: job.whatsapp || job.whatsapp_no,
+            botim: job.botim || job.botim_number,
             email: job.email,
           },
         });

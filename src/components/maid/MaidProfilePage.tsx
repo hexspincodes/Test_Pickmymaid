@@ -7,6 +7,7 @@ import { ContactSection } from "./ContactSection";
 import { MaidSessionProvider } from "./MaidSessionContext";
 import { sanitizeBasicHtml } from "@/lib/sanitizeHtml";
 import { nationalityFlagSrc } from "@/lib/countries";
+import { maidVideoLink } from "@/lib/youtube";
 import { EmploymentHistory } from "./EmploymentHistory";
 import { LanguagesSection } from "./LanguagesSection";
 import { ProfileCard, type Profile } from "@/components/cards/ProfileCard";
@@ -209,7 +210,7 @@ export function MaidProfilePage({
 
   const similarProfiles = similar.map((m, i) => mapMaidToProfile(m, i));
 
-  const youtubeUrl = toYouTubeEmbed(maid.youtube_link?.trim() ?? "");
+  const youtubeUrl = toYouTubeEmbed(maidVideoLink(maid.youtube_link));
   const personalInformations: {
     icon: ReactNode;
     label: string;
