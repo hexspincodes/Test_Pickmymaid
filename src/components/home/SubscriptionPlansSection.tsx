@@ -6,9 +6,10 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ChevronsRight } from "lucide-react";
 import { useAuthStore, useSubscription } from "@/store/auth";
-import { createPayment, ApiError, NetworkError } from "@/lib/api";
+import { createPayment, ApiError, NetworkError, type AppliedCoupon } from "@/lib/api";
 import { PLANS } from "@/config/plans.config";
 import { PlanCard } from "../cards/PlanCard";
+import { CouponField } from "../packages/CouponField";
 
 export function SubscriptionPlansSection() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export function SubscriptionPlansSection() {
   const logout = useAuthStore((s) => s.logout);
   const { isSubscribed, tier } = useSubscription();
   const [loadingType, setLoadingType] = useState<0 | 1 | 2 | 3 | null>(null);
+  const [coupon, setCoupon] = useState<AppliedCoupon | null>(null);
 
   async function handleGetStarted(type: 0 | 1 | 2 | 3) {
     if (!isAuthenticated) {
@@ -26,7 +28,7 @@ export function SubscriptionPlansSection() {
     if (loadingType !== null) return;
     setLoadingType(type);
     try {
-      const res = await createPayment(type);
+      const res = await createPayment(type, coupon?.code);
       window.location.assign(res.data.payment_url);
     } catch (err) {
       setLoadingType(null);
@@ -35,6 +37,10 @@ export function SubscriptionPlansSection() {
         toast("Your session has expired. Please log in to continue.");
         router.push(`/login?returnTo=${encodeURIComponent("/#packages")}`);
         return;
+      }
+      // The coupon was rejected at checkout (expired, already used, …).
+      if (coupon && err instanceof ApiError && (err.status === 400 || err.status === 404)) {
+        setCoupon(null);
       }
       console.error("createPayment failed", err);
       toast.error(
@@ -78,6 +84,8 @@ export function SubscriptionPlansSection() {
           </p>
         </div>
 
+        <CouponField applied={coupon} onChange={setCoupon} className="mb-8 lg:mb-10" />
+
         {/* Plan cards */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 lg:gap-8 lg:items-center">
           {PLANS.map((plan) => (
@@ -88,6 +96,7 @@ export function SubscriptionPlansSection() {
               loadingType={loadingType}
               onGetStarted={handleGetStarted}
               ctaLabel="Buy Package"
+              discountPercent={coupon?.discount_percent}
             />
           ))}
         </div>

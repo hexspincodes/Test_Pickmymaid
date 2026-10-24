@@ -19,6 +19,6 @@ export default async function MaidRedirectPage({
   const maid = (await getMaid(id)).data?.jobApplication;
   if (!maid) notFound();
 
-  const slug = slugify(`${maid.name} ${maid.option} ${maid.nationality}`);
+  const slug = slugify(`${maid.name} ${maid.option ?? ""} ${maid.nationality}`);
   permanentRedirect(`/maid/${id}/${slug}`);
 }

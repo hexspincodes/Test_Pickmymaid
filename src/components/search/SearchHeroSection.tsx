@@ -1,20 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { SplitButton } from "@/components/ui/SplitButton";
 
 const QUICK_FILTERS = [
-  "Muslim",
-  "Part Time",
-  "Dubai",
-  "UAE",
   "Filipino",
   "Indian",
-  "Cook",
-  "Malayalam",
+  "Nepali",
+  "Sri Lankan",
   "Indonesian",
+  "Own Visa",
+  "Muslim",
+  "Part Time",
+  "Malayalam",
 ];
 
 export function SearchHeroSection() {
@@ -26,6 +26,34 @@ export function SearchHeroSection() {
   useEffect(() => {
     setQuery(searchParams.get("q") ?? "");
   }, [searchParams]);
+
+  // The pill row scrolls sideways with its scrollbar hidden; on xl screens
+  // (mouse users, no swipe) arrow buttons appear while there's more to see.
+  const pillsRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  useEffect(() => {
+    const el = pillsRef.current;
+    if (!el) return;
+    const update = () => {
+      setCanScrollLeft(el.scrollLeft > 1);
+      setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 1);
+    };
+    el.addEventListener("scroll", update, { passive: true });
+    const observer = new ResizeObserver(update);
+    observer.observe(el);
+    return () => {
+      el.removeEventListener("scroll", update);
+      observer.disconnect();
+    };
+  }, []);
+
+  const scrollPills = (direction: 1 | -1) => {
+    const el = pillsRef.current;
+    if (!el) return;
+    el.scrollBy({ left: direction * el.clientWidth * 0.7, behavior: "smooth" });
+  };
 
   const doSearch = (q: string) => {
     const trimmed = q.trim();
@@ -85,17 +113,43 @@ export function SearchHeroSection() {
           </div>
 
           {/* Quick-filter pills */}
-          <div className="flex gap-2 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden pb-0.5">
-            {QUICK_FILTERS.map((filter) => (
+          <div className="relative">
+            <div
+              ref={pillsRef}
+              className="flex gap-2 overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden pb-0.5"
+            >
+              {QUICK_FILTERS.map((filter) => (
+                <button
+                  key={filter}
+                  type="button"
+                  onClick={() => doSearch(filter)}
+                  className="backdrop-blur-[34px] [-webkit-backdrop-filter:blur(34px)] bg-white/70 border border-white drop-shadow-[0px_19px_20px_rgba(0,0,0,0.05)] flex items-center px-3 py-2 lg:px-4 rounded-2xl shrink-0 text-[12px] lg:text-base text-dark/80 leading-[18px] lg:leading-6 tracking-[0.5px] lg:tracking-[0.25px] whitespace-nowrap hover:bg-white/90 transition-colors"
+                >
+                  {filter}
+                </button>
+              ))}
+            </div>
+
+            {canScrollLeft && (
               <button
-                key={filter}
                 type="button"
-                onClick={() => doSearch(filter)}
-                className="backdrop-blur-[34px] [-webkit-backdrop-filter:blur(34px)] bg-white/70 border border-white drop-shadow-[0px_19px_20px_rgba(0,0,0,0.05)] flex items-center px-3 py-2 lg:px-4 rounded-2xl shrink-0 text-[12px] lg:text-base text-dark/80 leading-[18px] lg:leading-6 tracking-[0.5px] lg:tracking-[0.25px] whitespace-nowrap hover:bg-white/90 transition-colors"
+                onClick={() => scrollPills(-1)}
+                aria-label="Scroll filters left"
+                className="hidden xl:flex absolute -left-5 top-1/2 -translate-y-1/2 w-10 h-10 items-center justify-center rounded-full bg-white text-dark shadow-md hover:text-primary transition-colors cursor-pointer"
               >
-                {filter}
+                <ChevronLeft className="w-5 h-5" />
               </button>
-            ))}
+            )}
+            {canScrollRight && (
+              <button
+                type="button"
+                onClick={() => scrollPills(1)}
+                aria-label="Scroll filters right"
+                className="hidden xl:flex absolute -right-5 top-1/2 -translate-y-1/2 w-10 h-10 items-center justify-center rounded-full bg-white text-dark shadow-md hover:text-primary transition-colors cursor-pointer"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            )}
           </div>
         </div>
       </div>

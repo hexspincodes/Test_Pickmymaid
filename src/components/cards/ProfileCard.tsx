@@ -19,6 +19,7 @@ import { SplitButton } from "../ui/SplitButton";
 import { OutlineButton } from "../ui/OutlineButton";
 import { useAuthStore, useSubscription } from "@/store/auth";
 import { toggleWishlist, trackCategoryUsage } from "@/lib/api";
+import { nationalityFlagSrc } from "@/lib/countries";
 import { HireModal } from "./HireModal";
 
 export interface Profile {
@@ -76,13 +77,6 @@ function formatPostedOn(iso?: string): string {
     year: "numeric",
   });
 }
-
-const flagMap = (country: string) => {
-  const base = "/images/national-flags/";
-  return country === "Srilanka"
-    ? `${base}sri lanka.webp`
-    : `${base}${country.toLowerCase()}.webp`;
-};
 
 function toYouTubeEmbed(rawUrl: string): string {
   // API sometimes stores links copied from YouTube's "Embed" snippet, which
@@ -155,9 +149,10 @@ export function ProfileCard({
   const hasVideo = !!profile.youtubeLink?.trim();
   const embedUrl = hasVideo ? toYouTubeEmbed(profile.youtubeLink!) : "";
   const profileSlug = slugify(
-    `${profile.name} ${profile.desiredJob} ${profile.country}`,
+    `${profile.name} ${profile.desiredJob ?? ""} ${profile.country}`,
   );
   const profileHref = `/maid/${profile.id}/${profileSlug}`;
+  const flagSrc = nationalityFlagSrc(profile.country);
 
   function trackProfile() {
     trackCategoryUsage(profile.service, profile.maidId ?? "", user?.id);
@@ -284,12 +279,16 @@ export function ProfileCard({
                 <span />
               )}
               <div className="flex items-center gap-2 bg-white/10 shadow-[inset_1px_1px_2px_rgba(0,0,0,0.1)] backdrop-blur-sm px-3 py-2 rounded-full">
-                <Image
-                  src={flagMap(profile.country)}
-                  width={20}
-                  height={20}
-                  alt={nationalityMap(profile.country)}
-                />
+                {flagSrc && (
+                  <Image
+                    src={flagSrc}
+                    width={20}
+                    height={20}
+                    unoptimized
+                    alt={nationalityMap(profile.country)}
+                    className="w-5 h-5 rounded-full object-cover"
+                  />
+                )}
                 <span className="text-xs font-medium text-white tracking-[0.5px]">
                   {nationalityMap(profile.country)}
                 </span>
@@ -343,7 +342,7 @@ export function ProfileCard({
           />
           <InfoRow
             icon={<Wallet className="w-5 h-5" />}
-            label="Desired Salary"
+            label="Expected Salary"
             value={profile.desiredSalary}
           />
           <InfoRow

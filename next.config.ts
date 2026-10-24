@@ -84,6 +84,13 @@ const nextConfig: NextConfig = {
   },
   experimental: {
     inlineCss: true,
+    // Next 16 persists Turbopack's dev build to .next/dev/cache across
+    // restarts. Here it repeatedly restored stale route builds: after a
+    // restart every /maid/[id]/[slug] URL 404'd (→ redirect home) in ~20ms
+    // without running the route, until the file was edited. Dev-only —
+    // production builds don't use this cache. Costs a slower first compile
+    // after each `npm run dev`.
+    turbopackFileSystemCacheForDev: false,
   },
   images: {
     remotePatterns: [

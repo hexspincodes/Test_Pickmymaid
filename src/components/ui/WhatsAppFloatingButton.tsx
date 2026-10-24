@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 import { Phone } from "lucide-react";
 import { WhatsAppIcon } from "@/components/icons/Whatsapp";
 
@@ -9,6 +10,7 @@ const WA_LINK = `https://wa.me/${PHONE_NUMBER}?text=Hi%2C%20I%27m%20interested%2
 const CALL_LINK = `tel:+${PHONE_NUMBER}`;
 
 export function WhatsAppFloatingButton() {
+  const pathname = usePathname();
   const [visible, setVisible] = useState(true);
   const [bubbleVisible, setBubbleVisible] = useState(false);
 
@@ -42,7 +44,7 @@ export function WhatsAppFloatingButton() {
 
   // Show bubble once per session — 3s after mount, auto-hide after 5s
   useEffect(() => {
-    if (sessionStorage.getItem("wa_bubble_seen")) return;
+    if (pathname !== "/" || sessionStorage.getItem("wa_bubble_seen")) return;
 
     let hideTimer: ReturnType<typeof setTimeout>;
 
@@ -56,7 +58,10 @@ export function WhatsAppFloatingButton() {
       clearTimeout(showTimer);
       clearTimeout(hideTimer);
     };
-  }, []);
+  }, [pathname]);
+
+  // Mounted in the root layout, but only wanted on the home page.
+  if (pathname !== "/") return null;
 
   return (
     <div

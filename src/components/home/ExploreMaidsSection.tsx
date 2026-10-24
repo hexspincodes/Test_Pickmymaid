@@ -67,7 +67,8 @@ export function ExploreMaidsSection() {
             Explore Maids in Dubai & UAE
           </h2>
           <p className="mt-2 text-sm lg:text-base text-muted">
-            Jump straight to the search that matches what you need.
+            Browse <span className="font-semibold text-primary">900+</span> verified profiles from Filipino, Indian, Sri Lankan, Indonesian &amp; other
+            nationalities. Connect directly with candidates and find the right fit for your home
           </p>
         </div>
 

@@ -1,18 +1,21 @@
 import Image from "next/image";
 import { BackButton } from "./BackButton";
-import { Wallet, GraduationCap, Timer, Check } from "lucide-react";
+import { Wallet, Timer, Check, House } from "lucide-react";
 import { CheckCircleIcon } from "@/components/icons/CheckCircleIcon";
 import { WishlistButton } from "./WishlistButton";
 import { ContactSection } from "./ContactSection";
 import { MaidSessionProvider } from "./MaidSessionContext";
 import { sanitizeBasicHtml } from "@/lib/sanitizeHtml";
+import { nationalityFlagSrc } from "@/lib/countries";
 import { EmploymentHistory } from "./EmploymentHistory";
 import { LanguagesSection } from "./LanguagesSection";
 import { ProfileCard, type Profile } from "@/components/cards/ProfileCard";
 import type { ApiMaid } from "@/types";
 import UserCircleDashed from "../icons/UserCircleDashed";
 import VisaSection from "./VisaSection";
+import CurrentLocationSection from "./CurrentLocationSection";
 import PersonalInformation from "./PersonalInformation";
+import GlobeSimple from "../icons/GlobeSimple";
 import CalenderDots from "../icons/CalenderDots";
 import MapPin from "../icons/MapPin";
 import Heart from "../icons/Heart";
@@ -23,6 +26,7 @@ import Briefcase from "../icons/Briefcase";
 import { ReactNode } from "react";
 import SkillsSection from "./SkillsSection";
 import { ContactMeButton } from "./ContactMeButton";
+import { ProfileActionBar } from "./ProfileActionBar";
 
 /* ─── Helpers ───────────────────────────────────────────────── */
 
@@ -76,12 +80,6 @@ function getInitials(name: string): string {
 function getSalaryLabel(from: number, to: number): string {
   if (from === 0 && to === 0) return "Negotiable";
   return `AED ${from} – ${to} / month`;
-}
-
-function flagPath(nationality: string): string {
-  if (nationality === "Srilanka")
-    return "/images/national-flags/sri lanka.webp";
-  return `/images/national-flags/${nationality.toLowerCase()}.webp`;
 }
 
 function capitalise(s: string) {
@@ -149,6 +147,47 @@ function InfoRow({
   );
 }
 
+/* ─── WorkArrangement ────────────────────────────────────────── */
+
+// `option` is "Live In", "Live Out" or "Live In And Live Out" — only the
+// arrangements it contains are shown. Anything unrecognised is shown as-is.
+const WORK_ARRANGEMENTS = [
+  { label: "Live-in", matches: (o: string) => /live\s*-?\s*in\b/.test(o) },
+  { label: "Live-out", matches: (o: string) => /live\s*-?\s*out\b/.test(o) },
+  { label: "Part-time", matches: (o: string) => /part\s*-?\s*time/.test(o) },
+];
+
+function WorkArrangement({ option }: { option: string }) {
+  const normalized = option.toLowerCase();
+  const matched = WORK_ARRANGEMENTS.filter(({ matches }) => matches(normalized)).map(
+    ({ label }) => label,
+  );
+  const labels = matched.length > 0 ? matched : [option.trim()];
+  // Same shell as InfoRow, with chips in place of the plain value.
+  return (
+    <div className="flex items-center justify-between gap-2 bg-[#f5f5f5] px-3 py-2 rounded-lg">
+      <div className="flex items-center gap-2 shrink-0">
+        <span className="text-dark/50">
+          <House className="w-4 h-4" />
+        </span>
+        <span className="text-xs font-medium text-dark tracking-[0.5px]">
+          Work Arrangement
+        </span>
+      </div>
+      <div className="flex flex-wrap justify-end gap-1.5 min-w-0">
+        {labels.map((label) => (
+          <span
+            key={label}
+            className="px-2.5 py-1 rounded-full bg-primary-50 text-primary text-xs font-semibold tracking-[0.5px] whitespace-nowrap"
+          >
+            {label}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ─── MaidProfilePage ────────────────────────────────────────── */
 
 export function MaidProfilePage({
@@ -165,6 +204,8 @@ export function MaidProfilePage({
   );
   const salary = getSalaryLabel(maid.salary.from, maid.salary.to);
   const availableFrom = maid.available_from?.trim();
+  const currentLocation = maid.current_location?.trim();
+  const flagSrc = nationalityFlagSrc(maid.nationality);
 
   const similarProfiles = similar.map((m, i) => mapMaidToProfile(m, i));
 
@@ -185,14 +226,17 @@ export function MaidProfilePage({
       value: maid.location as string,
     },
     {
-      icon: (
+      icon: flagSrc ? (
         <Image
-          src={flagPath(maid.nationality)}
+          src={flagSrc}
           width={24}
           height={24}
+          unoptimized
           alt={maid.nationality === "Srilanka" ? "Sri Lanka" : maid.nationality}
           className="rounded-full object-cover w-6 h-6"
         />
+      ) : (
+        <GlobeSimple />
       ),
       label: "Nationality",
       value: maid.nationality,
@@ -226,7 +270,8 @@ export function MaidProfilePage({
 
   return (
     <MaidSessionProvider maidId={maid._id}>
-    <div className="bg-[#F5F5F5] min-h-screen py-26 lg:py-25">
+    {/* Extra bottom padding keeps the last card clear of the floating action bar. */}
+    <div className="bg-[#F5F5F5] min-h-screen pt-26 pb-32 lg:pt-25 lg:pb-32">
       <div className="max-w-400 mx-auto px-4 sm:px-6 lg:px-16">
         {/* Back button */}
         <div className="mb-5">
@@ -283,16 +328,20 @@ export function MaidProfilePage({
                       <span />
                     )}
                     <div className="flex items-center gap-2 bg-white/10 shadow-[inset_1px_1px_2px_rgba(0,0,0,0.1)] backdrop-blur-sm px-3 py-2 rounded-full">
+                      {flagSrc && (
                       <Image
-                        src={flagPath(maid.nationality)}
+                        src={flagSrc}
                         width={20}
                         height={20}
+                        unoptimized
+                        className="w-5 h-5 rounded-full object-cover"
                         alt={
                           maid.nationality === "Srilanka"
                             ? "Sri Lanka"
                             : maid.nationality
                         }
                       />
+                      )}
                       <span className="text-xs font-medium text-white tracking-[0.5px]">
                         {maid.nationality === "Srilanka"
                           ? "Sri Lanka"
@@ -331,16 +380,10 @@ export function MaidProfilePage({
                 )}
                 <InfoRow
                   icon={<Wallet className="w-4 h-4" />}
-                  label="Desired Salary"
+                  label="Expected Salary"
                   value={salary}
                 />
-                {maid.option && (
-                  <InfoRow
-                    icon={<GraduationCap className="w-4 h-4" />}
-                    label="Desired Job"
-                    value={maid.option}
-                  />
-                )}
+                {maid.option && <WorkArrangement option={maid.option} />}
                 <InfoRow
                   icon={<Timer className="w-4 h-4" />}
                   label="Availability"
@@ -373,6 +416,9 @@ export function MaidProfilePage({
                 </div>
               )}
             </div>
+
+            {/* Older profiles predate current_location — no card rather than an empty one. */}
+            {currentLocation && <CurrentLocationSection location={currentLocation} />}
 
             {/* About section */}
             {maid.notes && (
@@ -452,6 +498,7 @@ export function MaidProfilePage({
         </div>
       </div>
     </div>
+    <ProfileActionBar maidRefNumber={String(maid.ref_number)} maidName={maid.name} />
     </MaidSessionProvider>
   );
 }

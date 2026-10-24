@@ -7,9 +7,10 @@ import { Check, CheckCircle2, ArrowRight, Plus, Minus } from "lucide-react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { toast } from "sonner";
 import { useAuthStore, useSubscription } from "@/store/auth";
-import { createPayment, ApiError, NetworkError } from "@/lib/api";
+import { createPayment, ApiError, NetworkError, type AppliedCoupon } from "@/lib/api";
 import { PLANS } from "@/config/plans.config";
 import { PlanCard } from "../cards/PlanCard";
+import { CouponField } from "./CouponField";
 
 /* ─── FAQ data ───────────────────────────────────────────────── */
 
@@ -242,6 +243,7 @@ export function PackagesPage() {
   const [faqOpen, setFaqOpen] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState<Record<string, string>>({});
   const [showRegisteredBanner, setShowRegisteredBanner] = useState(false);
+  const [coupon, setCoupon] = useState<AppliedCoupon | null>(null);
 
   useEffect(() => {
     if (searchParams.get("registered") === "1") {
@@ -260,7 +262,7 @@ export function PackagesPage() {
     if (loadingType !== null) return;
     setLoadingType(type);
     try {
-      const res = await createPayment(type);
+      const res = await createPayment(type, coupon?.code);
       window.location.assign(res.data.payment_url);
     } catch (err) {
       setLoadingType(null);
@@ -269,6 +271,10 @@ export function PackagesPage() {
         toast("Your session has expired. Please log in to continue.");
         router.push(`/login?returnTo=${encodeURIComponent(`${pathname}#plans`)}`);
         return;
+      }
+      // The coupon was rejected at checkout (expired, already used, …).
+      if (coupon && err instanceof ApiError && (err.status === 400 || err.status === 404)) {
+        setCoupon(null);
       }
       console.error("createPayment failed", err);
       toast.error(
@@ -411,6 +417,7 @@ export function PackagesPage() {
             <div className="mt-8 border-t border-gray-100 pt-6 flex justify-center">
               <PaymentMethods />
             </div>
+            <CouponField applied={coupon} onChange={setCoupon} className="mt-6" />
           </div>
 
           <div className="bg-[#F5F5F5] rounded-3xl p-4 lg:p-6 max-w-[1600px] mx-auto">
@@ -423,6 +430,7 @@ export function PackagesPage() {
                   loadingType={loadingType}
                   onGetStarted={handleGetStarted}
                   ctaLabel="Buy Package"
+                  discountPercent={coupon?.discount_percent}
                 />
               ))}
             </div>

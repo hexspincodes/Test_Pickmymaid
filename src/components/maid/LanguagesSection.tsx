@@ -1,39 +1,38 @@
+import { Star } from "lucide-react";
 import type { JobLanguage } from "@/types";
-import Books from "../icons/Books";
-import PenNib from "../icons/PenNib";
-import UserSound from "../icons/UserSound";
 
-function ProficiencyStatus({
-  action,
-  level,
-}: {
-  action: "Read" | "Write" | "Speak";
-  level: 0 | 1 | 2 | 3;
-}) {
-  const levelMap = {
-    0: "Good",
-    1: "Excellent",
-    2: "Fair",
-    3: "Don't Know",
-  };
+// API speak levels: 0 = Good, 1 = Excellent, 2 = Fair, 3 = Don't Know.
+const SPEAK_RATING: Record<number, { stars: number; label: string }> = {
+  0: { stars: 4, label: "Good" },
+  1: { stars: 5, label: "Excellent" },
+  2: { stars: 3, label: "Fair" },
+  3: { stars: 1, label: "Don't Know" },
+};
 
-  const iconMap = {
-    Read: <Books />,
-    Write: <PenNib />,
-    Speak: <UserSound />,
-  };
+const MAX_STARS = 5;
 
-  if (!action || (!level && level !== 0)) {
-    return null;
-  }
+function SpeakRating({ level }: { level: number | undefined }) {
+  const rating = level === undefined ? undefined : SPEAK_RATING[level];
+  if (!rating) return null;
 
   return (
-    <div className="flex items-center  justify-between gap-1">
-      <div className="flex items-center gap-1">
-        {iconMap[action]}
-        <span className="text-sm text-[#6f6f6f] font-bold">{action}</span>
+    <div className="flex flex-col items-center gap-1.5">
+      <div
+        className="flex items-center gap-0.5"
+        role="img"
+        aria-label={`Speaking: ${rating.label}, ${rating.stars} out of ${MAX_STARS} stars`}
+      >
+        {Array.from({ length: MAX_STARS }, (_, i) => (
+          <Star
+            key={i}
+            className={`w-4 h-4 ${
+              i < rating.stars ? "fill-primary text-primary" : "fill-gray-200 text-gray-200"
+            }`}
+            strokeWidth={1.5}
+          />
+        ))}
       </div>
-      <span className="text-sm text-[#6f6f6f]">{levelMap[level]}</span>
+      <span className="text-xs font-medium text-[#6f6f6f] tracking-[0.5px]">{rating.label}</span>
     </div>
   );
 }
@@ -56,19 +55,8 @@ export function LanguagesSection({ languages }: { languages: JobLanguage[] }) {
             <span className="text-sm bg-primary-50 p-3 flex items-center justify-center font-bold text-dark rounded-[12px_12px_0_0]">
               {lang.name}
             </span>
-            <div className="p-2 flex flex-col gap-2">
-              <ProficiencyStatus
-                action="Read"
-                level={lang.read as 0 | 1 | 2 | 3}
-              />
-              <ProficiencyStatus
-                action="Write"
-                level={lang.write as 0 | 1 | 2 | 3}
-              />
-              <ProficiencyStatus
-                action="Speak"
-                level={lang.speak as 0 | 1 | 2 | 3}
-              />
+            <div className="p-3">
+              <SpeakRating level={lang.speak} />
             </div>
           </div>
         ))}

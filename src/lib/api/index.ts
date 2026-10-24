@@ -317,8 +317,34 @@ export interface CreatePaymentResponse {
   data: { ref: string; payment_url: string }
 }
 
-export async function createPayment(type: 0 | 1 | 2 | 3): Promise<CreatePaymentResponse> {
-  return api.post<CreatePaymentResponse>('/v2/payment/create-payment', { type })
+// couponCode is re-validated server-side; the gateway is charged the
+// discounted amount.
+export async function createPayment(type: 0 | 1 | 2 | 3, couponCode?: string): Promise<CreatePaymentResponse> {
+  return api.post<CreatePaymentResponse>('/v2/payment/create-payment', couponCode ? { type, coupon_code: couponCode } : { type })
+}
+
+export interface AppliedCoupon {
+  code: string
+  discount_percent: number
+}
+
+export interface ValidateCouponResponse {
+  status: string
+  statusCode: number
+  message: string
+  data: AppliedCoupon
+}
+
+// 404 = unknown/inactive code, 400 = expired or already used by this customer.
+export async function validateCoupon(code: string): Promise<ValidateCouponResponse> {
+  return api.get<ValidateCouponResponse>(`/v1/payment/coupons/validate?code=${encodeURIComponent(code)}`)
+}
+
+// Mirrors the backend's rounding (whole fils), so the shown price is what
+// the gateway charges.
+export function discountedPrice(price: number, percent?: number): number {
+  if (!percent) return price
+  return Math.round(price * (100 - percent)) / 100
 }
 
 export interface GetBlogsResponse {

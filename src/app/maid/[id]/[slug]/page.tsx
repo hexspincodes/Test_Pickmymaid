@@ -51,7 +51,9 @@ export async function generateMetadata({
   const salary = getSalaryLabel(maid.salary.from, maid.salary.to);
   const photoUrl = getPhotoUrl(maid.profile);
   const canonical = `${seoConfig.siteUrl}/maid/${id}/${slug}`;
-  const title = `${maid.name} – ${maid.option} from ${maid.nationality}`;
+  const title = maid.option
+    ? `${maid.name} – ${maid.option} from ${maid.nationality}`
+    : `${maid.name} from ${maid.nationality}`;
   const description = `Hire ${maid.name}, a verified ${maid.service} from ${maid.nationality} with ${expYears} year${expYears !== 1 ? "s" : ""} of experience. Desired salary: ${salary}.`;
 
   return {

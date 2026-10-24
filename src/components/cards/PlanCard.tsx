@@ -2,6 +2,7 @@
 
 import { Check, Loader2, X } from "lucide-react";
 import type { Plan } from "@/config/plans.config";
+import { discountedPrice } from "@/lib/api";
 
 export function PlanCard({
   plan,
@@ -9,13 +10,18 @@ export function PlanCard({
   loadingType,
   onGetStarted,
   ctaLabel = "Get Started",
+  discountPercent,
 }: {
   plan: Plan;
   isActivePlan: boolean;
   loadingType: 0 | 1 | 2 | 3 | null;
   onGetStarted: (type: 0 | 1 | 2 | 3) => void;
   ctaLabel?: string;
+  discountPercent?: number;
 }) {
+  const showDiscount = !!discountPercent && !isActivePlan;
+  const price = showDiscount ? discountedPrice(plan.price, discountPercent) : plan.price;
+
   return (
     <div
       className={`group flex flex-col gap-6 rounded-3xl p-7 lg:p-8 bg-white transition-all duration-300 relative ${
@@ -36,9 +42,17 @@ export function PlanCard({
 
       <div className="flex flex-col gap-4">
         <p className="text-base font-semibold text-dark">{plan.name}</p>
+        {showDiscount && (
+          <div className="flex items-center gap-2 -mb-2">
+            <span className="text-sm text-muted line-through">AED {plan.price}</span>
+            <span className="text-[10px] font-bold text-primary tracking-[0.75px] uppercase bg-primary-50 border border-primary/30 rounded-full px-2 py-0.5">
+              {discountPercent}% off
+            </span>
+          </div>
+        )}
         <div className="flex items-end gap-1.5">
           <span className="text-4xl lg:text-5xl font-bold text-dark tracking-tight">
-            AED {plan.price}
+            AED {Number.isInteger(price) ? price : price.toFixed(2)}
           </span>
           <span className="text-sm text-muted mb-1.5">/ {plan.duration}</span>
         </div>

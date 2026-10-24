@@ -264,3 +264,41 @@ export const findCountryByName = (name: string) =>
 
 export const findCountryByCode = (code: string) =>
   COUNTRIES.find((c) => c.code === code);
+
+// Older maid records store spellings or demonyms ("Srilanka", "Filipino",
+// "Indian") instead of the country names above.
+const NATIONALITY_ALIASES: Record<string, string> = {
+  srilanka: "LK",
+  "sri lankan": "LK",
+  filipino: "PH",
+  filipina: "PH",
+  indian: "IN",
+  nepali: "NP",
+  nepalese: "NP",
+  indonesian: "ID",
+  bangladeshi: "BD",
+  pakistani: "PK",
+  ethiopian: "ET",
+  eritrean: "ER",
+  ugandan: "UG",
+  kenyan: "KE",
+  burmese: "MM",
+  bhutanese: "BT",
+  ghanaian: "GH",
+  nigerian: "NG",
+  vietnamese: "VN",
+  cameroonian: "CM",
+};
+
+export function findCountryByNationality(nationality: string | undefined) {
+  const key = nationality?.trim().toLowerCase();
+  if (!key) return undefined;
+  const code = NATIONALITY_ALIASES[key];
+  return code ? findCountryByCode(code) : findCountryByName(key);
+}
+
+// Flag for a maid's `nationality`, or null when it isn't a known country.
+export function nationalityFlagSrc(nationality: string | undefined) {
+  const country = findCountryByNationality(nationality);
+  return country ? flagSrc(country.code) : null;
+}

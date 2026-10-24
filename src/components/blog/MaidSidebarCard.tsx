@@ -44,7 +44,7 @@ export function MaidSidebarCard({
 }) {
   const photo = photoSrc(maid.profile);
   const nationality = maid.nationality ?? maid.country ?? "";
-  const slug = slugify(`${maid.name} ${maid.option} ${nationality}`);
+  const slug = slugify(`${maid.name} ${maid.option ?? ""} ${nationality}`);
   const id = maid.ref_number ?? maid._id;
   const expYears = (maid.employmentHistory ?? []).reduce(
     (acc, e) => acc + (e.experiance ?? 0),
