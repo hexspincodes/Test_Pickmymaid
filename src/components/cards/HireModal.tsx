@@ -6,11 +6,12 @@ import { X, Lock, Star } from "lucide-react";
 import Image from "next/image";
 import { SplitButton } from "@/components/ui/SplitButton";
 import type { Profile } from "./ProfileCard";
+import { workArrangementLabels } from "@/components/ui/WorkArrangement";
 
 type HireState = "not-logged-in" | "not-subscribed";
 
 interface HireModalProps {
-  profile: Pick<Profile, "id" | "name" | "initials" | "avatarBg" | "desiredJob" | "image">;
+  profile: Pick<Profile, "id" | "name" | "initials" | "avatarBg" | "workArrangement" | "image">;
   state: HireState;
   onClose: () => void;
 }
@@ -64,7 +65,9 @@ export function HireModal({ profile, state, onClose }: HireModalProps) {
             </div>
             <div>
               <p className="text-sm font-semibold text-dark leading-tight">{firstName}</p>
-              <p className="text-xs text-muted tracking-[0.25px]">{profile.desiredJob}</p>
+              <p className="text-xs text-muted tracking-[0.25px]">
+                {workArrangementLabels(profile.workArrangement).join(" · ")}
+              </p>
             </div>
           </div>
           <button

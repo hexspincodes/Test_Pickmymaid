@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { ProfileCard, type Profile } from "@/components/cards/ProfileCard";
 import { findMaids } from "@/lib/api";
+import { useSkillOptions } from "@/lib/useSkillOptions";
 import type { ApiMaid } from "@/types";
 import Filter from "../icons/Filter";
 import { lockScroll, unlockScroll } from "@/lib/scrollLock";
@@ -506,6 +507,7 @@ export function SearchResultsSection({
   );
   const [sheetOpen, setSheetOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
+  const skillOptions = useSkillOptions();
 
   const sectionRef = useRef<HTMLElement>(null);
   const shouldScrollRef = useRef(false);
@@ -706,11 +708,13 @@ export function SearchResultsSection({
           <CheckboxFilterGroup
             key={group.key}
             label={group.label}
-            options={group.options}
+            options={group.key === "skills" ? skillOptions : group.options}
             selected={activeFilters[group.key]}
             onToggle={(val) => toggleFilter(group.key, val)}
-            defaultOpen={i < 2}
-            searchable={group.key === "location" || group.key === "nationality"}
+            defaultOpen={i < 2 || (group.key === "skills" && activeFilters.skills.length > 0)}
+            searchable={
+              group.key === "location" || group.key === "nationality" || group.key === "skills"
+            }
           />
         );
       })}

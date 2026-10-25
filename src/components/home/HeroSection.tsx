@@ -86,7 +86,8 @@ export function HeroSection() {
           </div>
 
           {/* Keyword search */}
-          <div className="w-full sm:max-w-[520px] md:max-w-[640px] mx-auto z-10 mb-8 relative">
+          {/* z-20 keeps the skills dropdown above the maid image below (z-10) */}
+          <div className="w-full sm:max-w-[520px] md:max-w-[640px] mx-auto z-20 mb-8 relative">
             <SearchBar variant="mobile" />
           </div>
 

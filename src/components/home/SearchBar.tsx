@@ -5,9 +5,8 @@ import { useRouter } from "next/navigation";
 import { Check, ChevronDown, Search } from "lucide-react";
 import { SplitButton } from "../ui/SplitButton";
 import { Flag } from "../ui/CountrySelect";
-import { getSkills } from "@/lib/api";
-import { SKILLS } from "@/lib/maidFormOptions";
-import { matchSkills } from "@/lib/skillSearch";
+import { SkillSearchBox } from "../ui/SkillSearchBox";
+import { useSkillOptions } from "@/lib/useSkillOptions";
 import {
   COUNTRIES,
   POPULAR_COUNTRY_CODES,
@@ -254,25 +253,9 @@ export function SearchBar({
   const router = useRouter();
   const [location, setLocation] = useState("Dubai");
   const [skill, setSkill] = useState(ANY_SKILL);
-  // Active skills from the admin panel; the built-in list covers a failed request.
-  const [skillOptions, setSkillOptions] = useState<string[]>(SKILLS);
+  const skillOptions = useSkillOptions();
   const [nationality, setNationality] = useState("Philippines");
   const [mobileQuery, setMobileQuery] = useState("");
-  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
-  const suggestions = matchSkills(mobileQuery, skillOptions);
-
-  useEffect(() => {
-    let cancelled = false;
-    getSkills()
-      .then((res) => {
-        const names = (res.data?.skills || []).map((s) => s.name);
-        if (!cancelled && names.length) setSkillOptions(names);
-      })
-      .catch(() => {});
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const handleSearch = () => {
     const params = new URLSearchParams({
@@ -284,14 +267,13 @@ export function SearchBar({
     router.push(`/search?${params.toString()}`);
   };
 
-  const searchSkills = (skills: string[]) => {
-    const params = new URLSearchParams({ skills: skills.join(","), page: "1" });
+  const searchSkill = (s: string) => {
+    const params = new URLSearchParams({ skills: s, page: "1" });
     router.push(`/search?${params.toString()}`);
   };
 
   // The search page turns a keyword that names a skill into a skill search.
   const handleMobileSearch = () => {
-    setSuggestionsOpen(false);
     const params = new URLSearchParams({ q: mobileQuery.trim(), page: "1" });
     router.push(`/search?${params.toString()}`);
   };
@@ -337,59 +319,18 @@ export function SearchBar({
   }
 
   return (
-    <div className="relative lg:hidden">
-      <div className="flex backdrop-blur-[34px] bg-white/70 border border-white rounded-2xl drop-shadow-[0px_19px_20px_rgba(0,0,0,0.05)] overflow-hidden">
-        <input
-          type="text"
-          placeholder="Search by skill, e.g. Child Care"
-          value={mobileQuery}
-          onChange={(e) => {
-            setMobileQuery(e.target.value);
-            setSuggestionsOpen(true);
-          }}
-          onFocus={() => setSuggestionsOpen(true)}
-          onBlur={() => setSuggestionsOpen(false)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") handleMobileSearch();
-            else if (e.key === "Escape") setSuggestionsOpen(false);
-          }}
-          className="flex-1 text-base font-medium text-dark placeholder:text-dark/50 pl-4 py-3 bg-transparent border-none outline-none min-w-0 tracking-[0.25px] leading-6"
-          aria-label="Search by skill"
-          aria-autocomplete="list"
-          suppressHydrationWarning
-        />
-        <SplitButton
-          aria-label="Search"
-          icon={<Search />}
-          onClick={handleMobileSearch}
-        />
-      </div>
-
-      {suggestionsOpen && suggestions.length > 0 && (
-        <ul
-          role="listbox"
-          aria-label="Matching skills"
-          className="absolute left-0 right-0 top-full z-50 mt-2 max-h-64 overflow-y-auto rounded-2xl border border-gray-100 bg-white py-1 text-left shadow-[0px_19px_40px_0px_rgba(0,0,0,0.10)]"
-        >
-          {suggestions.map((s) => (
-            <li
-              key={s}
-              role="option"
-              aria-selected={false}
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => {
-                setMobileQuery(s);
-                setSuggestionsOpen(false);
-                searchSkills([s]);
-              }}
-              className="mx-1 flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-dark tracking-[0.25px] active:bg-primary-50"
-            >
-              <Search className="h-4 w-4 shrink-0 text-muted" strokeWidth={2} />
-              <span className="flex-1 truncate">{s}</span>
-            </li>
-          ))}
-        </ul>
-      )}
+    <div className="lg:hidden">
+      <SkillSearchBox
+        value={mobileQuery}
+        onValueChange={setMobileQuery}
+        onSearch={handleMobileSearch}
+        onPickSkill={searchSkill}
+        placeholder="Search by skill, e.g. Child Care"
+        ariaLabel="Search by skill"
+        barClassName="flex backdrop-blur-[34px] bg-white/70 border border-white rounded-2xl drop-shadow-[0px_19px_20px_rgba(0,0,0,0.05)] overflow-hidden"
+        inputClassName="flex-1 text-base font-medium text-dark placeholder:text-dark/50 pl-4 py-3 bg-transparent border-none outline-none min-w-0 tracking-[0.25px] leading-6"
+        buttons={<SplitButton type="submit" aria-label="Search" icon={<Search />} />}
+      />
     </div>
   );
 }

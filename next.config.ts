@@ -27,10 +27,14 @@ const CSP = [
   `script-src 'self' 'unsafe-inline' ${isDev ? "'unsafe-eval' " : ""}https://www.googletagmanager.com https://www.clarity.ms https://scripts.clarity.ms https://googleads.g.doubleclick.net`,
   "style-src 'self' 'unsafe-inline'",
   // blob: covers local previews of files picked in upload forms (URL.createObjectURL).
-  "img-src 'self' data: blob: https://pickmymaidbucket.sfo3.cdn.digitaloceanspaces.com https://pickmymaidbucket.sfo3.digitaloceanspaces.com https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms https://c.clarity.ms https://www.google.com https://www.google.co.in https://googleads.g.doubleclick.net",
+  // ad.doubleclick.net: Google Ads conversion pixel. c.bing.com: Clarity's
+  // tracking pixel redirects there.
+  "img-src 'self' data: blob: https://pickmymaidbucket.sfo3.cdn.digitaloceanspaces.com https://pickmymaidbucket.sfo3.digitaloceanspaces.com https://www.googletagmanager.com https://www.google-analytics.com https://www.clarity.ms https://*.clarity.ms https://c.bing.com https://www.google.com https://www.google.co.in https://googleads.g.doubleclick.net https://ad.doubleclick.net",
   "media-src 'self' blob:",
   "font-src 'self' data:",
-  "connect-src 'self' https://api.backendpickmymaid.site https://www.google-analytics.com https://www.clarity.ms https://c.clarity.ms https://www.google.com https://analytics.google.com https://googleads.g.doubleclick.net",
+  // Clarity posts to rotating subdomains (g., t., …) and GA4 to regional ones
+  // (region1.google-analytics.com), hence the wildcards.
+  "connect-src 'self' https://api.backendpickmymaid.site https://www.google-analytics.com https://*.google-analytics.com https://www.clarity.ms https://*.clarity.ms https://www.google.com https://analytics.google.com https://*.analytics.google.com https://googleads.g.doubleclick.net https://ad.doubleclick.net https://stats.g.doubleclick.net",
   "frame-src https://www.youtube.com https://player.vimeo.com",
   "object-src 'none'",
   "base-uri 'self'",
@@ -43,7 +47,7 @@ const securityHeaders = [
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(), interest-cohort=()" },
+  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
   { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
 ];
 

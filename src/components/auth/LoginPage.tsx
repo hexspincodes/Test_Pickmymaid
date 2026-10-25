@@ -7,7 +7,7 @@ import Image from "next/image";
 import { useForm } from "react-hook-form";
 import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
-import { useAuthStore } from "@/store/auth";
+import { markOAuthPending, useAuthStore } from "@/store/auth";
 import { loginCustomer, verifyAuth, getPaymentDetails, ApiError, NetworkError } from "@/lib/api";
 
 /* ─── OAuth endpoints ────────────────────────────────────────
@@ -90,10 +90,12 @@ export function LoginPage() {
      an absolute URL — a relative path resolves against api.backendpickmymaid.site
      instead of this site. */
   function handleGoogle() {
+    markOAuthPending();
     const redirect = `${window.location.origin}${returnTo}`;
     window.location.href = `${GOOGLE_URL}?redirect=${encodeURIComponent(redirect)}`;
   }
   function handleApple() {
+    markOAuthPending();
     const redirect = `${window.location.origin}${returnTo}`;
     window.location.href = `${APPLE_URL}?redirect=${encodeURIComponent(redirect)}`;
   }

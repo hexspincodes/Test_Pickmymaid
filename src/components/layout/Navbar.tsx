@@ -23,7 +23,7 @@ import { toast } from "sonner";
 import { SplitButton } from "../ui/SplitButton";
 import { OutlineButton } from "../ui/OutlineButton";
 import { PackageCardIcon } from "../icons/PackageCardIcon";
-import { useAuthStore } from "@/store/auth";
+import { clearOAuthPending, mayHaveSession, useAuthStore } from "@/store/auth";
 import { verifyAuth, logoutUser, getPaymentDetails } from "@/lib/api";
 
 import { ASSET_BASE } from "@/lib/assets";
@@ -105,7 +105,9 @@ export function Navbar() {
   useEffect(() => {
     const TIER_MAP = ["basic", "standard", "premium", "starter"] as const;
 
-    verifyAuth()
+    // Nobody has logged in on this browser: there's no session to check, and
+    // asking would only log a 401 in the console on every page.
+    (mayHaveSession() ? verifyAuth() : Promise.reject(new Error("No session")))
       .then(async (res) => {
         const u = res.data.user;
         let isSubscribed = false;
@@ -134,7 +136,8 @@ export function Navbar() {
       .catch(() => {
         logout();
         setAuthReady(true);
-      });
+      })
+      .finally(clearOAuthPending);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -321,8 +324,10 @@ export function Navbar() {
           hideNav ? "-translate-y-full" : "translate-y-0"
         } ${scrolled ? "shadow-sm" : ""}`}
       >
-        <nav className="max-w-[1900px] mx-auto px-4 sm:px-6 lg:px-20">
-          <div className="flex items-center justify-between h-16 lg:h-18">
+        {/* At xl (1280px) logo + 8 links + auth only just fit: tighter side
+            padding and link spacing until 2xl, and a gap so they never touch. */}
+        <nav className="max-w-[1900px] mx-auto px-4 sm:px-6 lg:px-12 2xl:px-20">
+          <div className="flex items-center justify-between gap-6 h-16 lg:h-18">
             {/* Logo */}
             <Link
               href="/"
@@ -349,7 +354,7 @@ export function Navbar() {
                 src="/logo orange.webp"
                 alt="Pickmymaid"
                 width={150}
-                height={41}
+                height={40}
                 priority
                 fetchPriority="high"
                 className="h-auto"
@@ -357,7 +362,7 @@ export function Navbar() {
             </Link>
 
             {/* Desktop nav links */}
-            <div className="hidden xl:flex items-center gap-6">
+            <div className="hidden xl:flex items-center gap-5 2xl:gap-6">
               {navLinks.map((link) => {
                 const isActive =
                   link.href === "/" ? pathname === "/" : pathname === link.href;
@@ -421,7 +426,7 @@ export function Navbar() {
                   src="/logo orange.webp"
                   alt="Pickmymaid"
                   width={150}
-                  height={41}
+                  height={40}
                   priority
                   fetchPriority="high"
                   className="h-auto"

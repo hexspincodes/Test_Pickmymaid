@@ -62,18 +62,10 @@ export const FILTER_GROUPS = [
     options: ["Hired", "Not Hired"],
   },
   {
-    key: "service" as const,
-    label: "Category",
-    options: [
-      "Maid",
-      "Nanny",
-      "Caregiver",
-      "Private Nurse",
-      "Private Tutor",
-      "Driver",
-      "Postpartum care",
-      "Cook",
-    ],
+    key: "skills" as const,
+    label: "Skills",
+    // Built-in fallback; the search page swaps in the admin panel's skills.
+    options: SKILLS,
   },
   {
     key: "religion" as const,
@@ -165,7 +157,7 @@ export function mapMaidToProfile(maid: ApiMaid, index: number): Profile {
     country: maid.nationality ?? "",
     experience: `${expYears.toFixed(0)} year${expYears !== 1 ? "s" : ""}`,
     desiredSalary: getSalary(maid.salary.from, maid.salary.to),
-    desiredJob: maid.option,
+    workArrangement: maid.option,
     service: maid.service,
     availability: maid.availability ? "Immediate" : "Not Available",
     secondaryAction: maidVideoLink(maid.youtube_link) ? "watch" : "hire",
@@ -193,7 +185,7 @@ export function parseActiveFilters(searchParams: URLSearchParams): ActiveFilters
     option: parseParam(searchParams.get("option")),
     location: parseParam(searchParams.get("location")),
     availability: parseParam(searchParams.get("availability")),
-    service: parseParam(searchParams.get("service")),
+    skills: parseParam(searchParams.get("skills")),
     religion: parseParam(searchParams.get("religion")),
     visa: parseParam(searchParams.get("visa")),
     salary: parseParam(searchParams.get("salary")),
@@ -208,7 +200,7 @@ export function searchedSkills(searchParams: URLSearchParams): {
   fromKeyword: boolean;
 } {
   const typed = matchSkills(searchParams.get("q") ?? "", SKILLS);
-  const skills = [...new Set([...parseParam(searchParams.get("skills")), ...typed])];
+  const skills = [...new Set([...parseActiveFilters(searchParams).skills, ...typed])];
   return { skills, fromKeyword: typed.length > 0 };
 }
 
@@ -232,9 +224,13 @@ export function buildFindMaidsParams(
     option: filters.option.join(",") || undefined,
     location: filters.location.join(",") || undefined,
     availability: filters.availability.join(",") || undefined,
-    service: filters.service.join(",") || undefined,
+    // No longer a sidebar filter, but older links (e.g. ?service=Nanny) still use it.
+    service: parseParam(searchParams.get("service")).join(",") || undefined,
     religion: filters.religion.map((r) => r.toLowerCase()).join(",") || undefined,
-    visa: filters.visa.join(",") || undefined,
+    // Some records store the status run together ("ownvisa"), so send that too.
+    visa:
+      [...new Set(filters.visa.flatMap((v) => [v, v.replace(/\s+/g, "").toLowerCase()]))].join(",") ||
+      undefined,
     salary: filters.salary.join(",") || undefined,
     nationality: filters.nationality.flatMap(nationalitySearchTerms).join(",") || undefined,
     salaryFrom: salaryMin ? parseInt(salaryMin, 10) : undefined,

@@ -7,8 +7,6 @@ import { useRouter } from "next/navigation";
 import {
   Briefcase,
   Wallet,
-  GraduationCap,
-  Timer,
   X,
   Check,
 } from "lucide-react";
@@ -17,6 +15,7 @@ import { CheckCircleIcon } from "@/components/icons/CheckCircleIcon";
 import { HeartStraight } from "../icons/HeartStraight";
 import { SplitButton } from "../ui/SplitButton";
 import { OutlineButton } from "../ui/OutlineButton";
+import { WorkArrangementRow } from "../ui/WorkArrangement";
 import { useAuthStore, useSubscription } from "@/store/auth";
 import { toggleWishlist, trackCategoryUsage } from "@/lib/api";
 import { nationalityFlagSrc } from "@/lib/countries";
@@ -29,7 +28,8 @@ export interface Profile {
   country: string;
   experience: string;
   desiredSalary: string;
-  desiredJob: string;
+  // The maid's `option`: "Live In", "Live Out" or "Live In And Live Out".
+  workArrangement: string;
   service: string;
   availability: string;
   secondaryAction: "watch" | "hire";
@@ -149,7 +149,7 @@ export function ProfileCard({
   const hasVideo = !!profile.youtubeLink?.trim();
   const embedUrl = hasVideo ? toYouTubeEmbed(profile.youtubeLink!) : "";
   const profileSlug = slugify(
-    `${profile.name} ${profile.desiredJob ?? ""} ${profile.country}`,
+    `${profile.name} ${profile.workArrangement ?? ""} ${profile.country}`,
   );
   const profileHref = `/maid/${profile.id}/${profileSlug}`;
   const flagSrc = nationalityFlagSrc(profile.country);
@@ -345,11 +345,7 @@ export function ProfileCard({
             label="Expected Salary"
             value={profile.desiredSalary}
           />
-          <InfoRow
-            icon={<GraduationCap className="w-5 h-5" />}
-            label="Desired Job"
-            value={profile.desiredJob}
-          />
+          <WorkArrangementRow option={profile.workArrangement} iconClassName="w-5 h-5" />
         </div>
 
         {/* ── CTA buttons ── */}

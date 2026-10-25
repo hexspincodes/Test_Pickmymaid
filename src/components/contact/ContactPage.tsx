@@ -198,7 +198,7 @@ export function ContactPage() {
               Contact Information
             </h2>
             <p className="relative mt-2 text-sm text-white/80 leading-5 tracking-[0.5px] max-w-sm">
-              Reach us directly by phone, WhatsApp or email, or visit our Dubai office.
+              Reach us directly by phone, WhatsApp or email.
             </p>
 
             <div className="relative grid grid-cols-1 gap-6 sm:grid-cols-2 sm:gap-x-8 lg:grid-cols-1 mt-8 lg:mt-10">

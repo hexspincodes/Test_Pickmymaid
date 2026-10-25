@@ -4,18 +4,24 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { SplitButton } from "@/components/ui/SplitButton";
+import { SkillSearchBox } from "@/components/ui/SkillSearchBox";
 
-const QUICK_FILTERS = [
-  "Filipino",
-  "Indian",
-  "Nepali",
-  "Sri Lankan",
-  "Indonesian",
-  "Own Visa",
-  "Muslim",
-  "Part Time",
-  "Malayalam",
-];
+// Each popular search applies the matching sidebar filter: a plain text
+// search only matches exact wording, so "Indian" found nobody stored as
+// nationality "India". Part Time and Malayalam have no filter in the API
+// (no part-time option or language filter), so they stay text searches.
+const QUICK_FILTER_PARAMS: Record<string, Record<string, string>> = {
+  Filipino: { nationality: "Philippines" },
+  Indian: { nationality: "India" },
+  Nepali: { nationality: "Nepal" },
+  "Sri Lankan": { nationality: "Sri Lanka" },
+  Indonesian: { nationality: "Indonesia" },
+  "Own Visa": { visa: "Own Visa" },
+  Muslim: { religion: "Islam" },
+  "Part Time": { q: "Part Time" },
+  Malayalam: { q: "Malayalam" },
+};
+const QUICK_FILTERS = Object.keys(QUICK_FILTER_PARAMS);
 
 export function SearchHeroSection() {
   const router = useRouter();
@@ -55,21 +61,33 @@ export function SearchHeroSection() {
     el.scrollBy({ left: direction * el.clientWidth * 0.7, behavior: "smooth" });
   };
 
+  // Typing a popular search (e.g. "indian") applies its filter too.
   const doSearch = (q: string) => {
     const trimmed = q.trim();
     if (!trimmed) return;
-    const params = new URLSearchParams({ q: trimmed });
+    const popular = QUICK_FILTERS.find((f) => f.toLowerCase() === trimmed.toLowerCase());
+    const params = new URLSearchParams(popular ? QUICK_FILTER_PARAMS[popular] : { q: trimmed });
     router.push(`/search?${params.toString()}`);
+  };
+
+  const searchSkill = (skill: string) => {
+    router.push(`/search?${new URLSearchParams({ skills: skill }).toString()}`);
   };
 
   return (
     <section
-      className="relative bg-white overflow-hidden pt-28 pb-16 lg:pt-40 lg:pb-24"
+      className="relative bg-white pt-28 pb-16 lg:pt-40 lg:pb-24"
       aria-label="Search maids and nannies"
     >
-      {/* Decorative gradient circles — matches home hero palette */}
+      {/* Orange glow — matches home hero palette. A gradient, not a blurred
+          circle: Safari paints large CSS blur filters very slowly, which
+          delayed this page's first paint and made scrolling janky. */}
       <div
-        className="absolute translate-x-[-50%] translate-y-[80%] lg:translatee-y-[18%] left-1/2 bottom-0 [filter:blur(150px)] lg:[filter:blur(300px)] w-full h-full bg-[#FF9068] rounded-full pointer-events-none"
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(ellipse 95% 120% at 50% 112%, rgba(255,144,104,0.6) 0%, rgba(255,144,104,0.34) 35%, rgba(255,144,104,0.14) 65%, rgba(255,144,104,0.05) 90%)",
+        }}
         aria-hidden="true"
       />
 
@@ -82,33 +100,38 @@ export function SearchHeroSection() {
 
         {/* Search input + quick-filter pills */}
         <div className="flex flex-col gap-2 lg:gap-3 w-full max-w-[855px]">
-          {/* Search bar */}
-          <div className="backdrop-blur-[34px] [-webkit-backdrop-filter:blur(34px)] bg-white/70 border border-white drop-shadow-[0px_19px_20px_rgba(0,0,0,0.05)] flex items-center pl-4 lg:pl-6 pr-2 py-2 rounded-2xl overflow-hidden">
-            <input
-              type="text"
+          {/* Search bar — tapping it lists every skill */}
+          <div className="relative z-20">
+            <SkillSearchBox
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && doSearch(query)}
+              onValueChange={setQuery}
+              onSearch={() => doSearch(query)}
+              onPickSkill={searchSkill}
               placeholder="Search by type eg. Cook Cleaning"
-              className="flex-1 text-base text-dark placeholder:text-dark/50 bg-transparent border-none outline-none min-w-0 leading-6 tracking-[0.25px]"
-              aria-label="Search maids and nannies"
-            />
+              ariaLabel="Search maids and nannies"
+              barClassName="bg-white/70 border border-white drop-shadow-[0px_19px_20px_rgba(0,0,0,0.05)] flex items-center pl-4 lg:pl-6 pr-2 py-2 rounded-2xl overflow-hidden"
+              inputClassName="flex-1 text-base text-dark placeholder:text-dark/50 bg-transparent border-none outline-none min-w-0 leading-6 tracking-[0.25px]"
+              buttons={
+                <>
+                  {/* Desktop: vertical divider + labelled split button */}
+                  <div className="hidden lg:flex items-center gap-6 shrink-0 self-stretch">
+                    <div className="w-px self-stretch bg-dark/10 my-1" />
+                    <SplitButton
+                      type="submit"
+                      label="Search"
+                      icon={<Search className="w-6 h-6" strokeWidth={1.5} />}
+                    />
+                  </div>
 
-            {/* Desktop: vertical divider + labelled split button */}
-            <div className="hidden lg:flex items-center gap-6 shrink-0 self-stretch">
-              <div className="w-px self-stretch bg-dark/10 my-1" />
-              <SplitButton
-                label="Search"
-                icon={<Search className="w-6 h-6" strokeWidth={1.5} />}
-                onClick={() => doSearch(query)}
-              />
-            </div>
-
-            {/* Mobile: icon-only split button */}
-            <SplitButton
-              className="lg:hidden"
-              icon={<Search className="w-5 h-5" strokeWidth={1.5} />}
-              onClick={() => doSearch(query)}
+                  {/* Mobile: icon-only split button */}
+                  <SplitButton
+                    type="submit"
+                    aria-label="Search"
+                    className="lg:hidden"
+                    icon={<Search className="w-5 h-5" strokeWidth={1.5} />}
+                  />
+                </>
+              }
             />
           </div>
 
@@ -123,7 +146,7 @@ export function SearchHeroSection() {
                   key={filter}
                   type="button"
                   onClick={() => doSearch(filter)}
-                  className="backdrop-blur-[34px] [-webkit-backdrop-filter:blur(34px)] bg-white/70 border border-white drop-shadow-[0px_19px_20px_rgba(0,0,0,0.05)] flex items-center px-3 py-2 lg:px-4 rounded-2xl shrink-0 text-[12px] lg:text-base text-dark/80 leading-[18px] lg:leading-6 tracking-[0.5px] lg:tracking-[0.25px] whitespace-nowrap hover:bg-white/90 transition-colors"
+                  className="bg-white/70 border border-white drop-shadow-[0px_19px_20px_rgba(0,0,0,0.05)] flex items-center px-3 py-2 lg:px-4 rounded-2xl shrink-0 text-[12px] lg:text-base text-dark/80 leading-[18px] lg:leading-6 tracking-[0.5px] lg:tracking-[0.25px] whitespace-nowrap hover:bg-white/90 transition-colors"
                 >
                   {filter}
                 </button>

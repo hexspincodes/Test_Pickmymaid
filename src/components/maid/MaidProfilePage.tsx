@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { BackButton } from "./BackButton";
-import { Wallet, Timer, Check, House } from "lucide-react";
+import { Wallet, Timer, Check } from "lucide-react";
 import { CheckCircleIcon } from "@/components/icons/CheckCircleIcon";
 import { WishlistButton } from "./WishlistButton";
 import { ContactSection } from "./ContactSection";
@@ -8,6 +8,7 @@ import { MaidSessionProvider } from "./MaidSessionContext";
 import { sanitizeBasicHtml } from "@/lib/sanitizeHtml";
 import { nationalityFlagSrc } from "@/lib/countries";
 import { maidVideoLink } from "@/lib/youtube";
+import { WorkArrangementRow } from "@/components/ui/WorkArrangement";
 import { EmploymentHistory } from "./EmploymentHistory";
 import { LanguagesSection } from "./LanguagesSection";
 import { ProfileCard, type Profile } from "@/components/cards/ProfileCard";
@@ -110,7 +111,7 @@ function mapMaidToProfile(maid: ApiMaid, index: number): Profile {
     country: maid.nationality ?? "",
     experience: `${expYears} year${expYears !== 1 ? "s" : ""}`,
     desiredSalary: getSalaryLabel(maid.salary.from, maid.salary.to),
-    desiredJob: maid.option,
+    workArrangement: maid.option,
     service: maid.service,
     availability: maid.availability ? "Immediate" : "Not Available",
     secondaryAction: "hire",
@@ -144,47 +145,6 @@ function InfoRow({
       <span className="text-xs font-medium text-dark/60 text-right truncate tracking-[0.5px] max-w-[55%]">
         {value}
       </span>
-    </div>
-  );
-}
-
-/* ─── WorkArrangement ────────────────────────────────────────── */
-
-// `option` is "Live In", "Live Out" or "Live In And Live Out" — only the
-// arrangements it contains are shown. Anything unrecognised is shown as-is.
-const WORK_ARRANGEMENTS = [
-  { label: "Live-in", matches: (o: string) => /live\s*-?\s*in\b/.test(o) },
-  { label: "Live-out", matches: (o: string) => /live\s*-?\s*out\b/.test(o) },
-  { label: "Part-time", matches: (o: string) => /part\s*-?\s*time/.test(o) },
-];
-
-function WorkArrangement({ option }: { option: string }) {
-  const normalized = option.toLowerCase();
-  const matched = WORK_ARRANGEMENTS.filter(({ matches }) => matches(normalized)).map(
-    ({ label }) => label,
-  );
-  const labels = matched.length > 0 ? matched : [option.trim()];
-  // Same shell as InfoRow, with chips in place of the plain value.
-  return (
-    <div className="flex items-center justify-between gap-2 bg-[#f5f5f5] px-3 py-2 rounded-lg">
-      <div className="flex items-center gap-2 shrink-0">
-        <span className="text-dark/50">
-          <House className="w-4 h-4" />
-        </span>
-        <span className="text-xs font-medium text-dark tracking-[0.5px]">
-          Work Arrangement
-        </span>
-      </div>
-      <div className="flex flex-wrap justify-end gap-1.5 min-w-0">
-        {labels.map((label) => (
-          <span
-            key={label}
-            className="px-2.5 py-1 rounded-full bg-primary-50 text-primary text-xs font-semibold tracking-[0.5px] whitespace-nowrap"
-          >
-            {label}
-          </span>
-        ))}
-      </div>
     </div>
   );
 }
@@ -280,20 +240,24 @@ export function MaidProfilePage({
         </div>
 
         {/* ── Two-column on desktop ─────────────────────────── */}
-        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
-          {/* Left / main column */}
-          <div className="flex-1 min-w-0 flex flex-col gap-5">
+        {/* Stacked cards stretch full width; side by side they align to the top. */}
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-stretch lg:items-start">
+          {/* Left / main column — fixed width beside the sidebar so it isn't
+              squeezed to a third of the row on small laptops */}
+          <div className="min-w-0 flex flex-col gap-5 lg:w-80 xl:w-90 lg:shrink-0">
             {/* Hero card */}
-            <div className="bg-white rounded-3xl p-6 flex flex-col gap-5">
+            {/* Photo beside the details on tablets, where a full-width square
+                photo would be ~700px tall; stacked on phones and in the sidebar. */}
+            <div className="bg-white rounded-3xl p-6 flex flex-col sm:flex-row lg:flex-col gap-5 sm:gap-6 lg:gap-5">
               {/* Image */}
-              <div className="relative rounded-xl overflow-hidden aspect-square">
+              <div className="relative rounded-xl overflow-hidden aspect-square sm:w-64 md:w-72 sm:shrink-0 sm:self-start lg:w-auto lg:self-auto">
                 {photoUrl ? (
                   <Image
                     src={photoUrl}
                     alt={`${maid.name} profile photo`}
                     fill
                     priority
-                    sizes="(max-width: 1024px) 100vw, 400px"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 288px, 400px"
                     className="object-cover object-top"
                   />
                 ) : (
@@ -353,6 +317,7 @@ export function MaidProfilePage({
                 </div>
               </div>
 
+              <div className="flex-1 min-w-0 flex flex-col gap-5">
               {/* Name + verified */}
               <div className="flex items-center gap-3">
                 <div className="min-w-0">
@@ -384,7 +349,7 @@ export function MaidProfilePage({
                   label="Expected Salary"
                   value={salary}
                 />
-                {maid.option && <WorkArrangement option={maid.option} />}
+                {maid.option && <WorkArrangementRow option={maid.option} />}
                 <InfoRow
                   icon={<Timer className="w-4 h-4" />}
                   label="Availability"
@@ -416,6 +381,7 @@ export function MaidProfilePage({
                   </span>
                 </div>
               )}
+              </div>
             </div>
 
             {/* Older profiles predate current_location — no card rather than an empty one. */}
@@ -444,8 +410,9 @@ export function MaidProfilePage({
           </div>
 
           {/* Right / sticky sidebar — desktop only */}
-          <aside className="flex-2 flex flex-col gap-4 shrink-0">
-            <div className="flex flex-col-reverse lg:flex-row gap-4 items-stretch">
+          <aside className="flex-1 min-w-0 flex flex-col gap-4">
+            {/* Video beside the contact card only once there's room for both */}
+            <div className="flex flex-col-reverse xl:flex-row gap-4 items-stretch">
               <div id="contact-section" className="flex-2">
                 <ContactSection
                   maidRefNumber={String(maid.ref_number)}

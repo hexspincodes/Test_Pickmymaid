@@ -61,7 +61,7 @@ function mapMaidToProfile(maid: ApiMaid, index: number): Profile {
       maid.salary.from === 0 && maid.salary.to === 0
         ? "Negotiable"
         : `AED ${maid.salary.from} - ${maid.salary.to}`,
-    desiredJob: maid.option,
+    workArrangement: maid.option,
     service: maid.service,
     availability: maid.availability ? "Immediate" : "Not Available",
     secondaryAction: "hire",
