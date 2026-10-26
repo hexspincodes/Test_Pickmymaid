@@ -403,7 +403,6 @@ export function JobSeekerForm({ onBack }: { onBack?: () => void }) {
   const profileUrl = usePreviewUrl(profile);
   const videoUrl = usePreviewUrl(video);
   const topRef = useRef<HTMLDivElement>(null);
-  const tabStripRef = useRef<HTMLOListElement>(null);
 
   const {
     register,
@@ -433,21 +432,6 @@ export function JobSeekerForm({ onBack }: { onBack?: () => void }) {
 
   const isLast = step === STEPS.length - 1;
   const current = STEPS[step];
-
-  // Centre the active tab in the mobile strip by scrolling the strip itself —
-  // scrollIntoView would also scroll the page, yanking the visitor away from
-  // the Submit button while the upload progress re-renders the form.
-  useEffect(() => {
-    const strip = tabStripRef.current;
-    const tab = strip?.children[step] as HTMLElement | undefined;
-    if (!strip || !tab) return;
-    const stripBox = strip.getBoundingClientRect();
-    const tabBox = tab.getBoundingClientRect();
-    strip.scrollBy({
-      left: tabBox.left - stripBox.left - (stripBox.width - tabBox.width) / 2,
-      behavior: "smooth",
-    });
-  }, [step]);
 
   function scrollToTop() {
     topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -498,23 +482,6 @@ export function JobSeekerForm({ onBack }: { onBack?: () => void }) {
     }
     changeStep(step - 1);
     scrollToTop();
-  }
-
-  // Lets the visitor jump back freely; jumping forward validates the tabs in between.
-  async function goTo(index: number) {
-    if (index === step) return;
-    if (index < step) {
-      changeStep(index);
-      return;
-    }
-    for (let i = step; i < index; i++) {
-      if (!(await validateStep(i))) {
-        if (i !== step) changeStep(i);
-        setStepChecked(true);
-        return;
-      }
-    }
-    changeStep(index);
   }
 
   function toggleSkill(skill: string) {
@@ -729,94 +696,30 @@ export function JobSeekerForm({ onBack }: { onBack?: () => void }) {
           </div>
         </div>
 
-        <div className="mt-6 grid lg:grid-cols-[260px_1fr] gap-6 items-start">
-          {/* Tabs — vertical list on desktop */}
-          <aside className="hidden lg:block sticky top-28 rounded-3xl bg-white p-4">
-            <p className="px-3 pt-2 pb-3 text-xs font-semibold uppercase tracking-wider text-muted">
-              Your application
-            </p>
-            <nav aria-label="Application sections">
-              <ol className="flex flex-col gap-1">
-                {STEPS.map((s, i) => {
-                  const done = i < step;
-                  const active = i === step;
-                  const Icon = s.icon;
-                  return (
-                    <li key={s.title}>
-                      <button
-                        type="button"
-                        onClick={() => goTo(i)}
-                        aria-current={active ? "step" : undefined}
-                        className={`flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition-colors cursor-pointer ${
-                          active ? "bg-primary-50" : "hover:bg-gray-50"
-                        }`}
-                      >
-                        <span
-                          className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full transition-colors ${
-                            done || active ? "bg-primary text-white" : "bg-gray-100 text-muted"
-                          }`}
-                        >
-                          {done ? <Check className="h-4 w-4" strokeWidth={3} /> : <Icon className="h-4 w-4" />}
-                        </span>
-                        <span>
-                          <span
-                            className={`block text-sm font-semibold ${
-                              active ? "text-primary" : done ? "text-dark" : "text-muted"
-                            }`}
-                          >
-                            {s.title}
-                          </span>
-                          <span className="block text-xs text-muted">{s.subtitle}</span>
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ol>
-            </nav>
-          </aside>
-
+        <div className="mt-6">
           {/* Form card */}
           <div className="min-w-0 rounded-3xl bg-white p-6 lg:p-10">
-            {/* Tabs — scrollable strip on mobile */}
-            <nav aria-label="Application sections" className="lg:hidden -mx-6 mb-6 border-b border-gray-100">
-              <ol ref={tabStripRef} className="flex gap-2 overflow-x-auto px-6 pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                {STEPS.map((s, i) => {
-                  const done = i < step;
-                  const active = i === step;
-                  return (
-                    <li key={s.title} className="shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => goTo(i)}
-                        aria-current={active ? "step" : undefined}
-                        className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-xs font-semibold transition-colors cursor-pointer ${
-                          active
-                            ? "bg-primary text-white"
-                            : done
-                              ? "bg-primary-50 text-primary"
-                              : "bg-gray-100 text-muted"
-                        }`}
-                      >
-                        {done && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
-                        {s.title}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ol>
-            </nav>
-
-            <div className="mb-7 flex items-center gap-3">
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary-50 text-primary">
-                <current.icon className="h-5 w-5" />
-              </span>
-              <div>
-                <h2 className="text-xl lg:text-2xl font-bold text-dark tracking-[-0.5px]">
-                  {current.title}
-                </h2>
-                <p className="text-sm text-muted">{current.subtitle}</p>
+            {/* Progress — "Step 1 of 5 · Personal Details" over a filling bar */}
+            <div className="mb-7">
+              <h2 className="text-lg lg:text-xl font-normal text-dark/80 tracking-[-0.25px]">
+                Step {step + 1} of {STEPS.length} ·{" "}
+                <span className="font-bold text-primary">{current.title}</span>
+              </h2>
+              <div
+                role="progressbar"
+                aria-label="Application progress"
+                aria-valuemin={1}
+                aria-valuemax={STEPS.length}
+                aria-valuenow={step + 1}
+                aria-valuetext={`Step ${step + 1} of ${STEPS.length}: ${current.title}`}
+                className="mt-3 h-2.5 w-full overflow-hidden rounded-full bg-gray-100"
+              >
+                <div
+                  className="h-full rounded-full bg-primary transition-[width] duration-500 ease-out"
+                  style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
+                />
               </div>
+              <p className="mt-4 text-sm text-muted">{current.subtitle}</p>
             </div>
 
             {serverError && (

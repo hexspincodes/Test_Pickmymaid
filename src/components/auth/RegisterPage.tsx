@@ -238,13 +238,14 @@ export function RegisterPage() {
         <div className="mt-12 lg:mt-16 max-w-247.5 mx-auto grid md:grid-cols-2 gap-8 lg:gap-x-47.5 items-center">
           <ChoiceCard
             watermark="FAMILY"
+            cover
             image={
               <Image
-                src="/images/register/family.webp"
-                alt="Family looking for a nanny or maid"
-                width={370}
-                height={338}
-                className="h-42.5 w-auto mix-blend-multiply"
+                src="/images/register/family-home.webp"
+                alt="A nanny and a mother reading with a child at home"
+                fill
+                sizes="400px"
+                className="object-cover object-[44%_center]"
               />
             }
             title="I’m looking for a Nanny or Maid"
@@ -299,10 +300,11 @@ export function RegisterPage() {
         {/* ── Left panel — image only (desktop) ── */}
         <div className="hidden lg:block relative rounded-3xl overflow-hidden min-h-160">
           <Image
-            src="/images/others/register-banner.webp"
-            alt="Find trusted domestic help in UAE"
+            src="/images/register/family-home.webp"
+            alt="A nanny and a mother reading with a child at home"
             fill
-            className="object-cover"
+            // Portrait panel, landscape photo: keep the three people in frame.
+            className="object-cover object-[44%_center]"
             sizes="(max-width: 1024px) 0px, 50vw"
             priority
           />
@@ -687,23 +689,33 @@ function ChoiceCard({
   title,
   description,
   cta,
+  cover = false,
 }: {
   watermark: string;
   image: React.ReactNode;
   title: string;
   description: string;
   cta: React.ReactNode;
+  // A full photo that fills the whole image area (pass an <Image fill>),
+  // rather than a cut-out standing on the watermark.
+  cover?: boolean;
 }) {
   return (
     <div className="w-full max-w-100 mx-auto rounded-3xl border border-gray-300/70 bg-white overflow-hidden">
       <div className="relative h-53 flex justify-center items-end border-b border-gray-300/70 overflow-hidden">
-        <span
-          className="absolute top-6 inset-x-0 text-center text-[64px] sm:text-[80px] font-extrabold leading-none tracking-wide text-[#F2F2F2] select-none"
-          aria-hidden="true"
-        >
-          {watermark}
-        </span>
-        <div className="relative">{image}</div>
+        {cover ? (
+          image
+        ) : (
+          <>
+            <span
+              className="absolute top-6 inset-x-0 text-center text-[64px] sm:text-[80px] font-extrabold leading-none tracking-wide text-[#F2F2F2] select-none"
+              aria-hidden="true"
+            >
+              {watermark}
+            </span>
+            <div className="relative">{image}</div>
+          </>
+        )}
       </div>
       <div className="px-8 sm:px-10 pt-6 pb-6">
         <h2 className="text-[22px] font-bold text-dark leading-snug tracking-[-0.3px]">
