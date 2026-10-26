@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import { getMaid } from "@/lib/api";
 import type { ApiMaid } from "@/types";
 import { MaidProfilePage } from "@/components/maid/MaidProfilePage";
+import { workArrangementLabels } from "@/components/ui/WorkArrangement";
+import { toList } from "@/lib/multiValue";
 import { seoConfig } from "@/config/seo.config";
 
 // No ISR — every request fetches the maid straight from the API, so an
@@ -51,10 +53,11 @@ export async function generateMetadata({
   const salary = getSalaryLabel(maid.salary.from, maid.salary.to);
   const photoUrl = getPhotoUrl(maid.profile);
   const canonical = `${seoConfig.siteUrl}/maid/${id}/${slug}`;
-  const title = maid.option
-    ? `${maid.name} – ${maid.option} from ${maid.nationality}`
+  const arrangement = workArrangementLabels(maid.option).join(" & ");
+  const title = arrangement
+    ? `${maid.name} – ${arrangement} from ${maid.nationality}`
     : `${maid.name} from ${maid.nationality}`;
-  const description = `Hire ${maid.name}, a verified ${maid.service} from ${maid.nationality} with ${expYears} year${expYears !== 1 ? "s" : ""} of experience. Desired salary: ${salary}.`;
+  const description = `Hire ${maid.name}, a verified ${toList(maid.service).join(" & ")} from ${maid.nationality} with ${expYears} year${expYears !== 1 ? "s" : ""} of experience. Desired salary: ${salary}.`;
 
   return {
     title,
@@ -101,17 +104,19 @@ export default async function MaidProfileRoute({
   const photoUrl = getPhotoUrl(maid.profile);
   const canonical = `${seoConfig.siteUrl}/maid/${maid.ref_number}/${slug}`;
   const salary = getSalaryLabel(maid.salary.from, maid.salary.to);
+  const arrangement = workArrangementLabels(maid.option).join(" & ");
+  const services = toList(maid.service).join(" & ");
 
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Person",
     name: maid.name,
-    jobTitle: maid.option,
+    jobTitle: arrangement || services,
     nationality: {
       "@type": "Country",
       name: nationalityLabel(maid.nationality),
     },
-    description: `Verified ${maid.option} from ${maid.nationality}. Desired salary: ${salary}.`,
+    description: `Verified ${arrangement || services} from ${maid.nationality}. Desired salary: ${salary}.`,
     url: canonical,
     ...(photoUrl && { image: photoUrl }),
   };

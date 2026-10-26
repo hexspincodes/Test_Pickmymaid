@@ -1,5 +1,6 @@
 import axios, { isAxiosError, type AxiosRequestConfig } from 'axios'
 import type { FeaturedJob, ApiMaid, ApiBlog, ApiBlogDetail } from '@/types'
+import { toList, type MultiValue } from '@/lib/multiValue'
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'https://api.backendpickmymaid.site/api'
 
@@ -420,10 +421,13 @@ export async function acknowledgePayment(ref: string): Promise<AcknowledgePaymen
   return api.post<AcknowledgePaymentResponse>(`/v2/payment/acknowledge/${ref}`, {})
 }
 
-export function trackCategoryUsage(category: string, maidId: string, userId?: string | null): void {
-  const body: { category: string; maid_id: string; user_id?: string } = { category, maid_id: maidId }
-  if (userId) body.user_id = userId
-  api.post<unknown>('/v1/analytics/category-usage', body).catch(() => {})
+// A maid offering several services counts once under each.
+export function trackCategoryUsage(categories: MultiValue, maidId: string, userId?: string | null): void {
+  for (const category of toList(categories)) {
+    const body: { category: string; maid_id: string; user_id?: string } = { category, maid_id: maidId }
+    if (userId) body.user_id = userId
+    api.post<unknown>('/v1/analytics/category-usage', body).catch(() => {})
+  }
 }
 
 export async function findMaids(params: FindMaidsParams = {}): Promise<FindMaidsResponse> {

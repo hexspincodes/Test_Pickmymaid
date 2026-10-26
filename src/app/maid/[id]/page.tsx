@@ -1,5 +1,6 @@
 import { permanentRedirect, notFound } from "next/navigation";
 import { getMaid } from "@/lib/api";
+import { toList } from "@/lib/multiValue";
 
 function slugify(str: string) {
   return str
@@ -19,6 +20,6 @@ export default async function MaidRedirectPage({
   const maid = (await getMaid(id)).data?.jobApplication;
   if (!maid) notFound();
 
-  const slug = slugify(`${maid.name} ${maid.option ?? ""} ${maid.nationality}`);
+  const slug = slugify(`${maid.name} ${toList(maid.option).join(" ")} ${maid.nationality}`);
   permanentRedirect(`/maid/${id}/${slug}`);
 }

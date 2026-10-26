@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useAuthStore, useSubscription } from "@/store/auth";
 import { SplitButton } from "@/components/ui/SplitButton";
 import { trackCategoryUsage } from "@/lib/api";
+import type { MultiValue } from "@/lib/multiValue";
 
 export function ContactMeButton({
   maidRefNumber,
@@ -13,7 +14,7 @@ export function ContactMeButton({
 }: {
   maidRefNumber: string;
   maidName: string;
-  maidService: string;
+  maidService: MultiValue;
   maidId: string;
 }) {
   const router = useRouter();

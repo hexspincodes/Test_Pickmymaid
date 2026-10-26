@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { findMaids } from "@/lib/api";
+import { toList } from "@/lib/multiValue";
 
 // findMaids now goes through axios, which Next's static-render detection
 // doesn't see — without this, the sitemap would render once at build time
@@ -38,7 +39,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     for (const m of maids) {
       if (!m.ref_number) continue;
-      const slug = slugify(`${m.name ?? ""} ${m.option ?? ""} ${m.nationality ?? ""}`);
+      const slug = slugify(`${m.name ?? ""} ${toList(m.option).join(" ")} ${m.nationality ?? ""}`);
       maidEntries.push({
         url: `${BASE}/maid/${String(m.ref_number)}/${slug}`,
         priority: 0.6,

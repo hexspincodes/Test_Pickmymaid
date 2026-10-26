@@ -18,6 +18,7 @@ import { OutlineButton } from "../ui/OutlineButton";
 import { WorkArrangementRow } from "../ui/WorkArrangement";
 import { useAuthStore, useSubscription } from "@/store/auth";
 import { toggleWishlist, trackCategoryUsage } from "@/lib/api";
+import { toList, type MultiValue } from "@/lib/multiValue";
 import { nationalityFlagSrc } from "@/lib/countries";
 import { HireModal } from "./HireModal";
 
@@ -28,9 +29,9 @@ export interface Profile {
   country: string;
   experience: string;
   desiredSalary: string;
-  // The maid's `option`: "Live In", "Live Out" or "Live In And Live Out".
-  workArrangement: string;
-  service: string;
+  // The maid's `option`, e.g. ["Live In", "Live Out"] (older profiles: one string).
+  workArrangement: MultiValue;
+  service: MultiValue;
   availability: string;
   secondaryAction: "watch" | "hire";
   avatarBg: string;
@@ -149,7 +150,7 @@ export function ProfileCard({
   const hasVideo = !!profile.youtubeLink?.trim();
   const embedUrl = hasVideo ? toYouTubeEmbed(profile.youtubeLink!) : "";
   const profileSlug = slugify(
-    `${profile.name} ${profile.workArrangement ?? ""} ${profile.country}`,
+    `${profile.name} ${toList(profile.workArrangement).join(" ")} ${profile.country}`,
   );
   const profileHref = `/maid/${profile.id}/${profileSlug}`;
   const flagSrc = nationalityFlagSrc(profile.country);

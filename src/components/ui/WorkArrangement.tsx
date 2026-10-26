@@ -1,21 +1,25 @@
 import { House } from "lucide-react";
+import { toList, type MultiValue } from "@/lib/multiValue";
 
-// `option` is "Live In", "Live Out" or "Live In And Live Out" — only the
-// arrangements it contains are shown. Anything unrecognised is shown as-is.
+// `option` is a list such as ["Live In", "Live Out"]; older profiles hold one
+// string, e.g. "Live In And Live Out". Only the arrangements it contains are
+// shown. Anything unrecognised is shown as-is.
 const WORK_ARRANGEMENTS = [
   { label: "Live-in", matches: (o: string) => /live\s*-?\s*in\b/.test(o) },
   { label: "Live-out", matches: (o: string) => /live\s*-?\s*out\b/.test(o) },
   { label: "Part-time", matches: (o: string) => /part\s*-?\s*time/.test(o) },
 ];
 
-export function workArrangementLabels(option: string | undefined): string[] {
-  const trimmed = option?.trim() ?? "";
-  if (!trimmed) return [];
-  const normalized = trimmed.toLowerCase();
+function labelsFor(option: string): string[] {
+  const normalized = option.toLowerCase();
   const matched = WORK_ARRANGEMENTS.filter(({ matches }) => matches(normalized)).map(
     ({ label }) => label,
   );
-  return matched.length > 0 ? matched : [trimmed];
+  return matched.length > 0 ? matched : [option];
+}
+
+export function workArrangementLabels(option: MultiValue | undefined): string[] {
+  return [...new Set(toList(option).flatMap(labelsFor))];
 }
 
 // Same shell as the InfoRow pattern, with chips in place of the plain value.
@@ -23,7 +27,7 @@ export function WorkArrangementRow({
   option,
   iconClassName = "w-4 h-4",
 }: {
-  option: string | undefined;
+  option: MultiValue | undefined;
   iconClassName?: string;
 }) {
   const labels = workArrangementLabels(option);

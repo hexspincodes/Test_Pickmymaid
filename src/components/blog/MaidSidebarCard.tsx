@@ -4,6 +4,8 @@ import { ArrowRight } from "lucide-react";
 import type { FeaturedJob } from "@/types";
 
 import { ASSET_BASE } from "@/lib/assets";
+import { toList } from "@/lib/multiValue";
+import { workArrangementLabels } from "@/components/ui/WorkArrangement";
 
 const AVATAR_COLORS = [
   "bg-rose-300",
@@ -44,7 +46,8 @@ export function MaidSidebarCard({
 }) {
   const photo = photoSrc(maid.profile);
   const nationality = maid.nationality ?? maid.country ?? "";
-  const slug = slugify(`${maid.name} ${maid.option ?? ""} ${nationality}`);
+  const slug = slugify(`${maid.name} ${toList(maid.option).join(" ")} ${nationality}`);
+  const arrangement = workArrangementLabels(maid.option).join(", ");
   const id = maid.ref_number ?? maid._id;
   const expYears = (maid.employmentHistory ?? []).reduce(
     (acc, e) => acc + (e.experiance ?? 0),
@@ -82,8 +85,8 @@ export function MaidSidebarCard({
         </p>
         <p className="text-xs text-muted truncate mt-0.5">
           {nationality}
-          {nationality && maid.option ? " · " : ""}
-          {maid.option}
+          {nationality && arrangement ? " · " : ""}
+          {arrangement}
         </p>
         {expYears > 0 && (
           <p className="text-xs text-muted mt-0.5">

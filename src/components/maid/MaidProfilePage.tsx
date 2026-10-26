@@ -8,6 +8,7 @@ import { MaidSessionProvider } from "./MaidSessionContext";
 import { sanitizeBasicHtml } from "@/lib/sanitizeHtml";
 import { nationalityFlagSrc } from "@/lib/countries";
 import { maidVideoLink } from "@/lib/youtube";
+import { toList } from "@/lib/multiValue";
 import { WorkArrangementRow } from "@/components/ui/WorkArrangement";
 import { EmploymentHistory } from "./EmploymentHistory";
 import { LanguagesSection } from "./LanguagesSection";
@@ -184,7 +185,12 @@ export function MaidProfilePage({
     {
       icon: <MapPin />,
       label: "Location",
-      value: maid.location as string,
+      value: toList(maid.location).join(", "),
+    },
+    {
+      icon: <Briefcase />,
+      label: "Service",
+      value: toList(maid.service).join(", "),
     },
     {
       icon: flagSrc ? (
@@ -349,7 +355,7 @@ export function MaidProfilePage({
                   label="Expected Salary"
                   value={salary}
                 />
-                {maid.option && <WorkArrangementRow option={maid.option} />}
+                {toList(maid.option).length > 0 && <WorkArrangementRow option={maid.option} />}
                 <InfoRow
                   icon={<Timer className="w-4 h-4" />}
                   label="Availability"

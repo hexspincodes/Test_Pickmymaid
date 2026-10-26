@@ -1,3 +1,5 @@
+import type { MultiValue } from '@/lib/multiValue'
+
 export interface Maid {
   id: string
   name: string
@@ -72,18 +74,18 @@ export interface ApiMaid {
   age: number
   nationality: string
   salary: Salary
-  service: string
+  service: MultiValue
   visa_status: string
   availability: boolean
   language: JobLanguage[]
-  option: string
+  option: MultiValue
   employmentHistory: ApiMaidEmploymentHistory[]
   references: boolean
   date: string
   is_in_wishlist: boolean
   /* Fields present in detail responses */
   marital_status?: string
-  location?: string
+  location?: MultiValue
   current_location?: string
   religion?: string
   skills?: string[]
@@ -136,13 +138,13 @@ export interface FeaturedJob {
   country?: string
   employmentHistory: Experience[]
   salary: Salary
-  option: string
+  option: MultiValue
   available_from: string
   is_new?: boolean
   // Fields present in full job objects
-  service?: string
+  service?: MultiValue
   religion?: string
-  location?: string
+  location?: MultiValue
   current_location?: string
   language?: JobLanguage[]
   skills?: string[]
