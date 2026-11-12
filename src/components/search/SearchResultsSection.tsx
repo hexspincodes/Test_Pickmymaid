@@ -443,6 +443,13 @@ function Pagination({
   );
 }
 
+// Native history updates sync useSearchParams without a server round-trip,
+// so filter clicks reflect instantly and only the client fetch runs.
+function replaceSearchUrl(params: URLSearchParams) {
+  const qs = params.toString();
+  window.history.replaceState(null, "", qs ? `/search?${qs}` : "/search");
+}
+
 /* ─── Fetch state reducer ─────────────────────────────────────────────────── */
 
 type FetchState = {
@@ -578,9 +585,9 @@ export function SearchResultsSection({
       params.delete("page");
       if (values.length > 0) params.set(key, values.join(","));
       else params.delete(key);
-      router.replace(`/search?${params.toString()}`, { scroll: false });
+      replaceSearchUrl(params);
     },
-    [router],
+    [],
   );
 
   const toggleFilter = useCallback(
@@ -598,8 +605,8 @@ export function SearchResultsSection({
     const q = new URLSearchParams(window.location.search).get("q") ?? "";
     const params = new URLSearchParams();
     if (q) params.set("q", q);
-    router.replace(`/search?${params.toString()}`, { scroll: false });
-  }, [router]);
+    replaceSearchUrl(params);
+  }, []);
 
   const updateSalaryRange = useCallback(
     (min: string, max: string) => {
@@ -609,9 +616,9 @@ export function SearchResultsSection({
       else params.delete("salaryMin");
       if (max) params.set("salaryMax", max);
       else params.delete("salaryMax");
-      router.replace(`/search?${params.toString()}`, { scroll: false });
+      replaceSearchUrl(params);
     },
-    [router],
+    [],
   );
 
   const updateSort = useCallback(
@@ -620,9 +627,9 @@ export function SearchResultsSection({
       params.delete("page");
       if (val) params.set("sort", val);
       else params.delete("sort");
-      router.replace(`/search?${params.toString()}`, { scroll: false });
+      replaceSearchUrl(params);
     },
-    [router],
+    [],
   );
 
   const updatePage = useCallback(
@@ -631,9 +638,9 @@ export function SearchResultsSection({
       const params = new URLSearchParams(window.location.search);
       if (p <= 1) params.delete("page");
       else params.set("page", String(p));
-      router.replace(`/search?${params.toString()}`, { scroll: false });
+      replaceSearchUrl(params);
     },
-    [router],
+    [],
   );
 
   /* Data fetching */
