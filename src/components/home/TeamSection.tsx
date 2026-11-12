@@ -58,7 +58,24 @@ export function TeamSection() {
     const track = trackRef.current
     if (!track) return
 
-    const id = setInterval(advance, 3500)
+    // Only auto-advance while the slider is on screen, so visitors see it
+    // start from the first card when they scroll down to the section.
+    let id: ReturnType<typeof setInterval> | undefined
+    const stop = () => {
+      if (id !== undefined) clearInterval(id)
+      id = undefined
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          if (id === undefined) id = setInterval(advance, 3500)
+        } else {
+          stop()
+        }
+      },
+      { threshold: 0.5 },
+    )
+    observer.observe(track)
 
     // Pause auto-advance while the user is touching
     const pause = () => { pausedRef.current = true }
@@ -71,7 +88,8 @@ export function TeamSection() {
     track.addEventListener('touchend', resume, { passive: true })
 
     return () => {
-      clearInterval(id)
+      stop()
+      observer.disconnect()
       track.removeEventListener('touchstart', pause)
       track.removeEventListener('touchend', resume)
     }
