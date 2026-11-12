@@ -38,7 +38,7 @@ export function WorkArrangementRow({
           <House className={iconClassName} />
         </span>
         <span className="text-xs font-medium text-dark tracking-[0.5px]">
-          Work Arrangement
+          Preferred Positions
         </span>
       </div>
       <div className="flex flex-wrap justify-end gap-1.5 min-w-0">
