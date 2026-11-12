@@ -5,9 +5,9 @@ import { ChevronsRight } from 'lucide-react'
 
 const team = [
   { id: 1, name: 'Soumya', role: 'HR Administration Manager | Dedicated Client Support', image: '/images/team/soumya.webp' },
-  { id: 2, name: 'Yasmin', role: 'HR Specialist', image: '/images/team/Yasmine.webp' },
-  { id: 3, name: 'Noor', role: 'HR Assistant', image: '/images/team/Noor.webp' },
-    
+  { id: 2, name: 'Saaritha', role: 'HR Executive', image: '/images/team/saaritha.webp' },
+  { id: 3, name: 'Yasmin', role: 'HR Specialist', image: '/images/team/Yasmine.webp' },
+  { id: 4, name: 'Noor', role: 'HR Assistant', image: '/images/team/Noor.webp' },
 ]
 
 function TeamCard({ name, role, image }: { name: string; role: string; image: string }) {
@@ -39,14 +39,19 @@ export function TeamSection() {
     const track = trackRef.current
     if (!track || pausedRef.current) return
     const cards = Array.from(track.children) as HTMLElement[]
-    // Find the currently snapped card by closest offsetLeft to scrollLeft
+    if (cards.length < 2) return
+    // Card positions measured inside the track; offsetLeft is relative to an
+    // ancestor and includes the page padding, which left the slider stuck.
     const scrollLeft = track.scrollLeft
+    const trackLeft = track.getBoundingClientRect().left
+    const positions = cards.map(c => c.getBoundingClientRect().left - trackLeft + scrollLeft)
     let current = 0
-    for (let i = 0; i < cards.length; i++) {
-      if (cards[i].offsetLeft <= scrollLeft + 2) current = i
+    for (let i = 1; i < positions.length; i++) {
+      if (Math.abs(positions[i] - scrollLeft) < Math.abs(positions[current] - scrollLeft)) current = i
     }
-    const next = current + 1 < cards.length ? current + 1 : 0
-    track.scrollTo({ left: cards[next].offsetLeft, behavior: 'smooth' })
+    const atEnd = scrollLeft >= track.scrollWidth - track.clientWidth - 2
+    const next = atEnd || current + 1 >= cards.length ? 0 : current + 1
+    track.scrollTo({ left: positions[next], behavior: 'smooth' })
   }, [])
 
   useEffect(() => {
@@ -91,7 +96,7 @@ export function TeamSection() {
         </div>
 
         {/* Desktop: 4-column grid */}
-        <div className="hidden lg:grid lg:grid-cols-3 gap-8">
+        <div className="hidden lg:grid lg:grid-cols-4 gap-8">
           {team.map(m => (
             <TeamCard key={m.id} name={m.name} role={m.role} image={m.image} />
           ))}
