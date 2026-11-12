@@ -4,7 +4,7 @@ import Image from 'next/image'
 import { ChevronsRight } from 'lucide-react'
 
 const team = [
-  { id: 1, name: 'Shahida', role: 'HR Administration Manager | Dedicated Client Support', image: '/images/team/shahida.webp' },
+  { id: 1, name: 'Soumya', role: 'HR Administration Manager | Dedicated Client Support', image: '/images/team/soumya.webp' },
   { id: 2, name: 'Yasmin', role: 'HR Specialist', image: '/images/team/Yasmine.webp' },
   { id: 3, name: 'Noor', role: 'HR Assistant', image: '/images/team/Noor.webp' },
     

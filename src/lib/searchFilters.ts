@@ -38,9 +38,19 @@ export type SortValue = (typeof SORT_OPTIONS)[number]["value"] | "";
 
 export const FILTER_GROUPS = [
   {
-    key: "option" as const,
-    label: "Position",
-    options: ["Live In", "Live Out", "Live In And Live Out"],
+    key: "salary" as const,
+    label: "Salary",
+    options: [
+      "1300-1500",
+      "1500-1800",
+      "1700-2000",
+      "1800-2200",
+      "2000-2500",
+      "2300-2800",
+      "2500-3000",
+      "3000-3500",
+      "Negotiable",
+    ],
   },
   {
     key: "location" as const,
@@ -57,22 +67,6 @@ export const FILTER_GROUPS = [
     ],
   },
   {
-    key: "availability" as const,
-    label: "Availability",
-    options: ["Hired", "Not Hired"],
-  },
-  {
-    key: "skills" as const,
-    label: "Skills",
-    // Built-in fallback; the search page swaps in the admin panel's skills.
-    options: SKILLS,
-  },
-  {
-    key: "religion" as const,
-    label: "Religion",
-    options: ["Christian", "Hinduism", "Islam", "Buddhist", "Sikhism"],
-  },
-  {
     key: "visa" as const,
     label: "Visa Status",
     options: [
@@ -84,19 +78,15 @@ export const FILTER_GROUPS = [
     ],
   },
   {
-    key: "salary" as const,
-    label: "Salary",
-    options: [
-      "1300-1500",
-      "1500-1800",
-      "1700-2000",
-      "1800-2200",
-      "2000-2500",
-      "2300-2800",
-      "2500-3000",
-      "3000-3500",
-      "Negotiable",
-    ],
+    key: "skills" as const,
+    label: "Skills",
+    // Built-in fallback; the search page swaps in the admin panel's skills.
+    options: SKILLS,
+  },
+  {
+    key: "option" as const,
+    label: "Position",
+    options: ["Live In", "Live Out", "Live In And Live Out"],
   },
   {
     key: "nationality" as const,
@@ -120,6 +110,16 @@ export const FILTER_GROUPS = [
       "Zimbabwe",
       "Uganda",
     ],
+  },
+  {
+    key: "religion" as const,
+    label: "Religion",
+    options: ["Christian", "Hinduism", "Islam", "Buddhist", "Sikhism"],
+  },
+  {
+    key: "availability" as const,
+    label: "Availability",
+    options: ["Hired", "Not Hired"],
   },
 ] as const;
 
