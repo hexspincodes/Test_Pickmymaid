@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { CheckCircle, Mail, ArrowRight } from "lucide-react";
-import { getPaymentDetails } from "@/lib/api";
+import { CheckCircle, Mail, ArrowRight, LogIn } from "lucide-react";
+import { getPaymentDetails, ApiError } from "@/lib/api";
 import { useAuthStore } from "@/store/auth";
 import { SplitButton } from "@/components/ui/SplitButton";
 import { PLANS } from "@/config/plans.config";
@@ -29,6 +29,9 @@ function formatDate(dateStr: string): string {
 export function PaymentSuccessPage() {
   const searchParams = useSearchParams();
   const setAuth = useAuthStore((s) => s.setAuth);
+  // The plan is active either way, but the browser may have dropped the
+  // session cookie on the way back from the gateway.
+  const [needsLogin, setNeedsLogin] = useState(false);
 
   const typeIndex = parseInt(searchParams.get("type") ?? "-1", 10);
   const expiryParam = searchParams.get("expiry") ?? "";
@@ -50,7 +53,9 @@ export function PaymentSuccessPage() {
           setAuth({ ...currentUser, isSubscribed: true, subscriptionTier: tier });
         }
       })
-      .catch(() => {});
+      .catch((err) => {
+        if (err instanceof ApiError && err.status === 401) setNeedsLogin(true);
+      });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
@@ -109,9 +114,22 @@ export function PaymentSuccessPage() {
             </p>
           </div>
 
+          {needsLogin && (
+            <div className="flex items-start gap-3 bg-[#F5F5F5] rounded-2xl p-4 mb-6">
+              <LogIn className="w-5 h-5 text-primary shrink-0 mt-0.5" />
+              <p className="text-sm text-dark leading-relaxed">
+                Your plan is active. Please log in again to unlock contact details.
+              </p>
+            </div>
+          )}
+
           {/* CTAs */}
           <div className="flex flex-col gap-3">
-            <SplitButton label="Start Browsing Maids" href="/search" className="w-full" />
+            {needsLogin ? (
+              <SplitButton label="Log In" href="/login?returnTo=%2Fsearch" className="w-full" />
+            ) : (
+              <SplitButton label="Start Browsing Maids" href="/search" className="w-full" />
+            )}
             <Link
               href="/"
               className="text-center text-sm font-medium text-muted hover:text-dark transition-colors py-2"

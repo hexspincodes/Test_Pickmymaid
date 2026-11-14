@@ -21,7 +21,8 @@ export function PaymentFailedPage() {
             </div>
             <h1 className="text-2xl lg:text-3xl font-bold text-dark mb-2">Payment Unsuccessful</h1>
             <p className="text-sm text-muted leading-relaxed">
-              We were unable to process your payment. No charges have been made to your account.
+              We couldn&apos;t confirm your payment. If your card was charged, your plan will be
+              activated automatically within a few minutes and your receipt will be emailed to you.
             </p>
           </div>
 

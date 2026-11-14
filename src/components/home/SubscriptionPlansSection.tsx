@@ -6,10 +6,12 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { ChevronsRight } from "lucide-react";
 import { useAuthStore, useSubscription } from "@/store/auth";
-import { createPayment, ApiError, NetworkError, type AppliedCoupon } from "@/lib/api";
+import { createPayment, ApiError, NetworkError } from "@/lib/api";
 import { PLANS } from "@/config/plans.config";
 import { PlanCard } from "../cards/PlanCard";
 import { CouponField } from "../packages/CouponField";
+import { WelcomeOffer } from "../packages/WelcomeOffer";
+import { useAppliedCoupon } from "../packages/useAppliedCoupon";
 
 export function SubscriptionPlansSection() {
   const router = useRouter();
@@ -17,7 +19,7 @@ export function SubscriptionPlansSection() {
   const logout = useAuthStore((s) => s.logout);
   const { isSubscribed, tier } = useSubscription();
   const [loadingType, setLoadingType] = useState<0 | 1 | 2 | 3 | null>(null);
-  const [coupon, setCoupon] = useState<AppliedCoupon | null>(null);
+  const [coupon, setCoupon] = useAppliedCoupon();
 
   async function handleGetStarted(type: 0 | 1 | 2 | 3) {
     if (!isAuthenticated) {
@@ -84,6 +86,7 @@ export function SubscriptionPlansSection() {
           </p>
         </div>
 
+        <WelcomeOffer applied={coupon} onApply={setCoupon} className="mb-4" />
         <CouponField applied={coupon} onChange={setCoupon} className="mb-8 lg:mb-10" />
 
         {/* Plan cards */}

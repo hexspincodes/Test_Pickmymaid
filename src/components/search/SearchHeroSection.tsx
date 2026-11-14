@@ -107,7 +107,7 @@ export function SearchHeroSection() {
               onValueChange={setQuery}
               onSearch={() => doSearch(query)}
               onPickSkill={searchSkill}
-              placeholder="Search by type eg. Cook Cleaning"
+              placeholder={'Try "Filipino nanny", "Live-in", "Cook"'}
               ariaLabel="Search maids and nannies"
               barClassName="bg-white/70 border border-white drop-shadow-[0px_19px_20px_rgba(0,0,0,0.05)] flex items-center pl-4 lg:pl-6 pr-2 py-2 rounded-2xl overflow-hidden"
               inputClassName="flex-1 text-base text-dark placeholder:text-dark/50 bg-transparent border-none outline-none min-w-0 leading-6 tracking-[0.25px]"

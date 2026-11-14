@@ -7,10 +7,12 @@ import { Check, CheckCircle2, ArrowRight, Plus, Minus } from "lucide-react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { toast } from "sonner";
 import { useAuthStore, useSubscription } from "@/store/auth";
-import { createPayment, ApiError, NetworkError, type AppliedCoupon } from "@/lib/api";
+import { createPayment, ApiError, NetworkError } from "@/lib/api";
 import { PLANS } from "@/config/plans.config";
 import { PlanCard } from "../cards/PlanCard";
 import { CouponField } from "./CouponField";
+import { WelcomeOffer } from "./WelcomeOffer";
+import { useAppliedCoupon } from "./useAppliedCoupon";
 
 /* ─── FAQ data ───────────────────────────────────────────────── */
 
@@ -243,7 +245,7 @@ export function PackagesPage() {
   const [faqOpen, setFaqOpen] = useState(0);
   const [quizAnswers, setQuizAnswers] = useState<Record<string, string>>({});
   const [showRegisteredBanner, setShowRegisteredBanner] = useState(false);
-  const [coupon, setCoupon] = useState<AppliedCoupon | null>(null);
+  const [coupon, setCoupon] = useAppliedCoupon();
 
   useEffect(() => {
     if (searchParams.get("registered") === "1") {
@@ -417,7 +419,8 @@ export function PackagesPage() {
             <div className="mt-8 border-t border-gray-100 pt-6 flex justify-center">
               <PaymentMethods />
             </div>
-            <CouponField applied={coupon} onChange={setCoupon} className="mt-6" />
+            <WelcomeOffer applied={coupon} onApply={setCoupon} className="mt-6" />
+            <CouponField applied={coupon} onChange={setCoupon} className="mt-4" />
           </div>
 
           <div className="bg-[#F5F5F5] rounded-3xl p-4 lg:p-6 max-w-[1600px] mx-auto">

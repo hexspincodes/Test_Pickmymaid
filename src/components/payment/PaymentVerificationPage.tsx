@@ -6,10 +6,9 @@ import { Loader2 } from "lucide-react";
 import { acknowledgePayment, ApiError } from "@/lib/api";
 
 // The gateway redirects the browser back the instant the charge completes,
-// but its server-to-server webhook (which is what actually activates the
-// subscription in the backend) can lag a few seconds behind. Retry with
-// backoff before concluding the payment genuinely failed, so that race
-// doesn't get reported to the user as a failed charge.
+// but can take a few seconds to report the order as paid. Retry with backoff
+// before showing the failed page. If the payment settles later, the
+// backend's reconcile job activates the plan anyway.
 const RETRY_DELAYS_MS = [1500, 2000, 3000, 4000];
 
 function wait(ms: number): Promise<void> {

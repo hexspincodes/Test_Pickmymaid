@@ -18,7 +18,7 @@ export const PLANS: Plan[] = [
   {
     id: "starter",
     name: "Starter Set",
-    price: 0.38,
+    price: 0.09,
     duration: "14 Days",
     description: "One-time Payment",
     isBestChoice: false,
@@ -80,3 +80,10 @@ export const PLANS: Plan[] = [
     ],
   },
 ];
+
+// Shown on the Packages page to anyone without an active plan. The backend's
+// coupon check is what limits it to a customer's first payment.
+export const WELCOME_OFFER = {
+  code: "WELCOME10",
+  discountPercent: 10,
+} as const;

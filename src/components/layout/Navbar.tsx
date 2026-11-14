@@ -24,7 +24,7 @@ import { SplitButton } from "../ui/SplitButton";
 import { OutlineButton } from "../ui/OutlineButton";
 import { PackageCardIcon } from "../icons/PackageCardIcon";
 import { clearOAuthPending, mayHaveSession, useAuthStore } from "@/store/auth";
-import { verifyAuth, logoutUser, getPaymentDetails } from "@/lib/api";
+import { verifyAuth, logoutUser, getPaymentDetails, ApiError, NetworkError } from "@/lib/api";
 
 import { ASSET_BASE } from "@/lib/assets";
 
@@ -133,8 +133,13 @@ export function Navbar() {
         });
         setAuthReady(true);
       })
-      .catch(() => {
-        logout();
+      .catch((err) => {
+        // Only a real "not authenticated" answer ends the login. A timeout,
+        // dropped connection or server error (common right after the payment
+        // gateway redirect) keeps the remembered user signed in.
+        const temporaryFailure =
+          err instanceof NetworkError || (err instanceof ApiError && err.status !== 401);
+        if (!temporaryFailure) logout();
         setAuthReady(true);
       })
       .finally(clearOAuthPending);
